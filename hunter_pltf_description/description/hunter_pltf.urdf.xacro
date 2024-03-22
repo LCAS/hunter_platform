@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="hunter_pltf">
+    <xacro:arg name="is_sim" default="true"/>
+ <xacro:arg name="prefix" default="" />
+ <xacro:if value="$(arg is_sim)">
+  <xacro:include filename="$(find hunter_pltf_description)/description/depth_camera.urdf.xacro"/>
+  <xacro:include filename="$(find hunter_description)/description/hunter.urdf.xacro"/>
+  <xacro:hunter_depth_camera name="back_camera" x="-1.2" y="-0.05" z="1.4" is_sim="$(arg is_sim)"/>
+  <xacro:hunter_depth_camera name="front_camera" x="1.23" y="-0.05" z="1.4" is_sim="$(arg is_sim)"/>
+ </xacro:if>
+ <xacro:unless value="$(arg is_sim)">
+  <xacro:include filename="$(find hunter_description)/description/hunter_hardware.urdf.xacro"/>
+  <xacro:include filename="$(find hunter_pltf_description)/description/zed_multi.urdf.xacro"/>
+  <xacro:zed_depth_camera name="$(arg prefix)multi_link" x="0" y="0.0" z="0"/>
+ </xacro:unless>
+
+   
+    <xacro:include filename="$(find hunter_pltf_description)/description/lidar.urdf.xacro"/>
+    <xacro:include filename="$(find hunter_pltf_description)/description/mid360.xacro"/>
+    <xacro:include filename="$(find hunter_pltf_description)/description/imu.urdf.xacro"/>
+    <xacro:include filename="$(find hunter_pltf_description)/description/gps.urdf.xacro"/>
+   
+    <!--  ADD ADDITIONAL SENSOR URDF HERE   -->
+    <!--  -->
+
+  
+<!-- <xacro:include filename="$(find hunter_pltf_description)/description/depth_camera.urdf.xacro"/> -->
+    <xacro:hunter_imu name="$(arg prefix)imu1" is_sim="$(arg is_sim)" x="-0.40" y="0.0" z="0.596"/>
+    <xacro:hunter_imu name="$(arg prefix)imu2" is_sim="$(arg is_sim)" x="1.2" y="0.0" z="0.4" />
+    <!-- <xacro:mid360 name="$(arg prefix)front_lidar" xyz="1.2 0.3 0.3" rpy="0 0 0"/> -->
+    <!-- <xacro:mid360 name="$(arg prefix)back_lidar" xyz="-1.2 -0.3 0.3" rpy="0 0 0"/> -->
+    <!-- <xacro:hunter_lidar name="$(arg prefix)front_lidar" x="1.2" y="0.3" z="0.3"/> -->
+    <!-- <xacro:hunter_lidar name="$(arg prefix)back_lidar" x="-1.2" y="-0.3" z="0.3"/> -->
+    <!-- <xacro:hunter_depth_camera name="$(arg prefix)back_camera" x="-1.2" y="0.0" z="0.6" yaw='3.14' is_sim="$(arg is_sim)"/> -->
+    <!-- <xacro:hunter_depth_camera name="$(arg prefix)front_camera" x="1.2" y="0.0" z="0.6" is_sim="$(arg is_sim)"/> -->
+    <xacro:hunter_gps name="$(arg prefix)gps_base" is_sim="$(arg is_sim)" x="-0.40" y="0.0" z="0.616"/>
+    <xacro:hunter_gps name="$(arg prefix)gps_rover" is_sim="$(arg is_sim)" x="-0.40" y="0.0" z="0.616"/>
+        <!-- Lidar -->
+    <!-- <xacro:mid360 name="livox_front" parent="base_link" topic="front_lidar/scan">
+      <origin xyz="1.05 0.35 0.37" rpy="0 0 3.14"/>
+    </xacro:mid360> -->
+    <!-- <xacro:mid360 name="livox_back" parent="base_link" topic="back_lidar/scan">
+      <origin xyz="-1.05 -0.35 0.37" rpy="0 0 0"/>
+    </xacro:mid360> -->
+
+</robot>

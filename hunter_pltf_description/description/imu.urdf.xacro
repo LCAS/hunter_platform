@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+ <xacro:macro name="hunter_imu" params="name x:=0.0 y:=0.0 z:=0.0 roll:=0.0 pitch:=0.0 yaw:=0.0 is_sim:=true">
+  <joint name="${name}_joint" type='fixed'> 
+   <parent link="base_link"/>
+   <child link="${name}_link"/>
+   <origin xyz="${x} ${y} ${z}" rpy="${roll} ${pitch} ${yaw}"/>
+  </joint>
+
+  <link name="${name}_link"/>
+
+ <xacro:if value="${is_sim}">
+    <gazebo reference="${name}_link">
+      <sensor name="${name}_imu" type="imu">
+      <plugin filename="libgazebo_ros_imu_sensor.so" name="${name}_controller">
+          <ros>
+            <!-- <namespace>$(arg prefix)</namespace> -->
+            <remapping>~/out:=/${name}/data</remapping>
+            <initial_orientation_as_reference>false</initial_orientation_as_reference>
+          </ros>
+          <frame_name>${name}_link</frame_name>
+        </plugin>
+        <always_on>true</always_on>
+        <update_rate>10</update_rate>
+      </sensor>
+    </gazebo>
+ </xacro:if>
+
+</xacro:macro>
+</robot>
