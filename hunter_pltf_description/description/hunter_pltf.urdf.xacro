@@ -3,10 +3,10 @@
     <xacro:arg name="is_sim" default="true"/>
  <xacro:arg name="prefix" default="" />
  <xacro:if value="$(arg is_sim)">
-  <xacro:include filename="$(find hunter_pltf_description)/description/depth_camera.urdf.xacro"/>
+  <!--<xacro:include filename="$(find hunter_pltf_description)/description/depth_camera.urdf.xacro"/>-->
   <xacro:include filename="$(find hunter_description)/description/hunter.urdf.xacro"/>
-  <xacro:hunter_depth_camera name="back_camera" x="-1.2" y="-0.05" z="1.4" is_sim="$(arg is_sim)"/>
-  <xacro:hunter_depth_camera name="front_camera" x="1.23" y="-0.05" z="1.4" is_sim="$(arg is_sim)"/>
+  <!--<xacro:hunter_depth_camera name="back_camera" x="-1.2" y="-0.05" z="1.4" is_sim="$(arg is_sim)"/>-->
+  <!--<xacro:hunter_depth_camera name="front_camera" x="1.23" y="-0.05" z="1.4" is_sim="$(arg is_sim)"/>-->
  </xacro:if>
  <xacro:unless value="$(arg is_sim)">
   <xacro:include filename="$(find hunter_description)/description/hunter_hardware.urdf.xacro"/>
@@ -42,5 +42,4 @@
     <!-- <xacro:mid360 name="livox_back" parent="base_link" topic="back_lidar/scan">
       <origin xyz="-1.05 -0.35 0.37" rpy="0 0 0"/>
     </xacro:mid360> -->
-
 </robot>

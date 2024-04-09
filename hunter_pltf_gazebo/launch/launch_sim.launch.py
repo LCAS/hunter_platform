@@ -11,6 +11,7 @@ from ament_index_python.packages import get_package_share_directory
 from pathlib import Path
 import os
 
+
 def generate_launch_description():
 
     # Include the robot_state_publisher launch file, provided by our own package. Force sim time to be enabled
@@ -25,7 +26,7 @@ def generate_launch_description():
     roll = LaunchConfiguration('roll', default='0.0')
     pitch = LaunchConfiguration('pitch', default='0.0')
     yaw = LaunchConfiguration('yaw', default='1.45')
-    gazebo_verbose = LaunchConfiguration('gazebo_verbose', default='false')
+    gazebo_verbose = LaunchConfiguration('gazebo_verbose', default='true')
     rsp = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(
                     get_package_share_directory('hunter_pltf_description'),'launch','pltf_rsp.launch.py'
@@ -68,12 +69,12 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster"],
     )
 
-    diffdrive_controller_spawn_callback = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=joint_broad_spawner,
-            on_exit=[diff_drive_spawner],
-        )
-    )
+    # diffdrive_controller_spawn_callback = RegisterEventHandler(
+    #     event_handler=OnProcessExit(
+    #         target_action=joint_broad_spawner,
+    #         on_exit=[diff_drive_spawner],
+    #     )
+    # )
     # Launch them all!
     return LaunchDescription([
         DeclareLaunchArgument(
