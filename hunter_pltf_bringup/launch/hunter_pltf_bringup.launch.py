@@ -13,11 +13,13 @@
 # limitations under the License.
  
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, RegisterEventHandler
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler , IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
 import ament_index_python.packages
+from ament_index_python.packages import get_package_share_directory
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 import launch
 import launch_ros.actions
 from launch_ros.actions import Node
@@ -86,6 +88,8 @@ def generate_launch_description():
             "hardware_controllers.yaml",
         ]
     )
+
+    base_launch = os.path.join(get_package_share_directory("hunter_base"), "launch", "hunter_base.launch.py")
     # rviz_config_file = PathJoinSubstitution(
     #     [FindPackageShare("ros2_control_demo_description"), "diffbot/rviz", "diffbot.rviz"]
     # t
@@ -101,10 +105,12 @@ def generate_launch_description():
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
-        remappings=[
-            ("/diff_drive_controller/cmd_vel_unstamped", "/cmd_vel"),
-        ],
+        # remappings=[
+            # ("/diff_drive_controller/cmd_vel_unstamped", "/cmd_vel"),
+        # ],
     )
+
+
     # rviz_node = Node(
     #     package="rviz2",
     #     executable="rviz2",
@@ -114,17 +120,17 @@ def generate_launch_description():
     #     condition=IfCondition(gui),
     # )
  
-    joint_state_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
-    )
+    # joint_state_broadcaster_spawner = Node(
+        # package="controller_manager",
+        # executable="spawner",
+        # arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+    # )
  
-    robot_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["diff_drive_controller", "--controller-manager", "/controller_manager"],
-    )
+    # robot_controller_spawner = Node(
+        # package="controller_manager",
+        # executable="spawner",
+        # arguments=["diff_drive_controller", "--controller-manager", "/controller_manager"],
+    # )
  
     # Delay rviz start after `joint_state_broadcaster`
     # delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
@@ -135,19 +141,22 @@ def generate_launch_description():
     # )
  
     # Delay start of robot_controller after `joint_state_broadcaster`
-    delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
-            on_exit=[robot_controller_spawner],
-        )
-    )
+    # delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
+        # event_handler=OnProcessExit(
+            # target_action=joint_state_broadcaster_spawner,
+            # on_exit=[robot_controller_spawner],
+        # )
+    # )
     # --------------------- SENSOR BRINGUPS ----------
     nodes = [
-        control_node,
+        # control_node,
         robot_state_pub_node,
-        joint_state_broadcaster_spawner,
+        # joint_state_broadcaster_spawner,
         # delay_rviz_after_joint_state_broadcaster_spawner,
-        delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
+        # delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
     ]
  
-    return LaunchDescription(declared_arguments +nodes )
+    launches=  [IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(base_launch)
+        ),]
+    return LaunchDescription(declared_arguments +nodes  + launches)
