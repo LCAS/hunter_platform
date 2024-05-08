@@ -8,12 +8,16 @@
   <!--<xacro:hunter_depth_camera name="back_camera" x="-1.2" y="-0.05" z="1.4" is_sim="$(arg is_sim)"/>-->
   <!--<xacro:hunter_depth_camera name="front_camera" x="1.23" y="-0.05" z="1.4" is_sim="$(arg is_sim)"/>-->
  </xacro:if>
- <xacro:unless value="$(arg is_sim)">
-  <xacro:include filename="$(find hunter_description)/description/hunter_hardware.urdf.xacro"/>
-  <xacro:include filename="$(find hunter_pltf_description)/description/zed_multi.urdf.xacro"/>
-  <xacro:zed_depth_camera name="$(arg prefix)multi_link" x="0" y="0.0" z="0"/>
- </xacro:unless>
 
+ <xacro:unless value="$(arg is_sim)">
+  <xacro:include filename="$(find hunter_description)/description/hunter_core.urdf.xacro"/>
+  <xacro:dogbot prefix="$(arg prefix)" is_sim="$(arg is_sim)"/>
+
+  <!-- <xacro:include filename="$(find hunter_description)/description/hunter_hardware.urdf.xacro"/> -->
+  <!-- <xacro:include filename="$(find hunter_pltf_description)/description/zed_multi.urdf.xacro"/> -->
+  <!-- <xacro:zed_depth_camera name="$(arg prefix)multi_link" x="0" y="0.0" z="0"/> -->
+ </xacro:unless>
+    <!-- <link name="base_link" /> -->
    
     <xacro:include filename="$(find hunter_pltf_description)/description/lidar.urdf.xacro"/>
     <xacro:include filename="$(find hunter_pltf_description)/description/mid360.xacro"/>
