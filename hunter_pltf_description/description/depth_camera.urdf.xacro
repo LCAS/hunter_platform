@@ -12,8 +12,7 @@
                     <origin xyz="0 0 0" rpy="1.57 0 1.57"/>
 
             <geometry>
-
-            <mesh filename="$(find hunter_pltf_description)/meshes/r200.dae"> 
+            <mesh filename="file://$(find hunter_pltf_description)/meshes/r200.dae"> 
             </mesh>
                 <!-- <box size="0.010 0.03 0.03"/> -->
             </geometry>
