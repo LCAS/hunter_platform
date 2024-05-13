@@ -16,7 +16,7 @@
     <xacro:include filename="$(find hunter_pltf_description)/description/gps.urdf.xacro"/>
     <xacro:include filename="$(find hunter_pltf_description)/description/depth_camera.urdf.xacro"/>
    
-    <xacro:hunter_imu name="$(arg prefix)imu1" is_sim="$(arg is_sim)" x="0.0" y="0.0" z="0.2"/>
+    <xacro:hunter_imu name="$(arg prefix)imu1" is_sim="$(arg is_sim)" x="0.0" y="0.0" z="0.2" topic="/gps_base/yaw"/>
     <xacro:hunter_lidar name="$(arg prefix)front_lidar" x="0.4" y="-0.2" z="0.37"/>
     <xacro:hunter_lidar name="$(arg prefix)back_lidar" x="-0.4" y="0.2" z="0.37"  yaw="3.14"/>
     <xacro:hunter_depth_camera name="front_camera" x="0.3" y="-0.05" z="0.68" is_sim="$(arg is_sim)" />
