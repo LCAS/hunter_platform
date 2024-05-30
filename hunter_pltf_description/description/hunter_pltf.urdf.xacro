@@ -21,6 +21,10 @@
    <xacro:hunter_lidar name="$(arg prefix)back_lidar" x="-0.55" y="-0.3" z="0.35"  yaw="3.14"/>
    <xacro:hunter_depth_camera name="front_camera" x="0.55" y="-0.00" z="0.6" is_sim="$(arg is_sim)" />
    <xacro:hunter_depth_camera name="back_camera" x="-0.55" y="-0.00" z="0.6" is_sim="$(arg is_sim)" yaw="3.14"/>
+   <xacro:hunter_fish_camera name="fish_front_camera" x="0.55" y="-0.00" z="0.6" is_sim="$(arg is_sim)" />
+   <xacro:hunter_fish_camera name="fish_right_camera" x="0.55" y="-0.00" z="0.6" is_sim="$(arg is_sim)" />
+   <xacro:hunter_fish_camera name="fish_back_camera" x="0.55" y="-0.00" z="0.6" is_sim="$(arg is_sim)" />
+    <xacro:hunter_fish_camera name="fish_left_camera" x="0.55" y="-0.00" z="0.6" is_sim="$(arg is_sim)" />
    <xacro:hunter_gps name="$(arg prefix)gps_base" is_sim="$(arg is_sim)" x="0.25" y="0.0" z="0.69"/>
    <xacro:hunter_gps name="$(arg prefix)back_antenna" is_sim="$(arg is_sim)" x="-0.61" y="-0.16" z="0.8"/>
    <xacro:hunter_gps name="$(arg prefix)front_antenna" is_sim="$(arg is_sim)" x="0.61" y="0.16" z="0.8"/>
