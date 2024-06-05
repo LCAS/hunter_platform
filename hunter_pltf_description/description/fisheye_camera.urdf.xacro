@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+ <xacro:macro name="hunter_fisheye_camera" params="name x y z roll:=0.0 pitch:=0.0 yaw:=0.0 is_sim:=true">
+    <joint name="${name}_camera_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="${name}_link"/>
+        <origin xyz="${x} ${y} ${z}" rpy="${roll} ${pitch} ${yaw}"/>
+    </joint>
+
+    <link name="${name}_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.038 0.038 0.010"/>
+            </geometry>
+            <material name="black"/> 
+        </visual>
+    </link>
+    
+    <xacro:if value="${is_sim}">
+        <gazebo reference="${name}_link">
+            <sensor name="${name}_camera" type="camera">
+                <pose> 0 0 0 0 0 0 </pose>
+                <visualize>true</visualize>
+                <update_rate>10</update_rate>
+                <camera>
+                    <horizontal_fov>1.089</horizontal_fov> 
+                    <image>
+                        <format>B8G8R8</format>
+                        <width>640</width>
+                        <height>480</height>
+                    </image>
+                    <clip>
+                        <near>0.05</near>
+                        <far>8.0</far>
+                    </clip>
+                </camera>
+                <plugin name="${name}_camera_controller" filename="libgazebo_ros_camera.so">
+                    <camera_name>${name}</camera_name>
+                    <hack_baseline>0</hack_baseline> 
+                </plugin>
+            </sensor>
+        </gazebo>
+    </xacro:if>
+</xacro:macro>
+</robot>
+
