@@ -30,39 +30,33 @@ import yaml
 import os
  
 def generate_launch_description():
-    # Declare arguments
     
-    gps_config_directory = os.path.join( ament_index_python.packages
-                                        .get_package_share_directory('hunter_pltf_bringup'),'config')
-    gps_param_config = os.path.join(gps_config_directory, 'gps_config.yaml')
-    
-    gps_config_file = LaunchConfiguration(
-        'gps_config', default=gps_param_config)
-    
-    
-    declared_arguments = []
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            "gui",
-            default_value="true",
-            description="Start RViz2 automatically with this launch file.",
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            "use_mock_hardware",
-            default_value="true",
-            description="Start robot with mock hardware mirroring command to its states.",
-        )
-    )
- 
- 
-    declared_arguments.append(DeclareLaunchArgument(
-            'gps_config', default_value=gps_config_file , description='config file for gps'))
     # Initialize Arguments
-    # gui = LaunchConfiguration("gui")
-    use_mock_hardware = LaunchConfiguration("use_mock_hardware")
+    gui = LaunchConfiguration("gui", default="true")
+    kp_v = LaunchConfiguration('kp_v', default='40.0')
+    kd_v = LaunchConfiguration('kd_v', default='0.1') 
+    kp_w = LaunchConfiguration('kp_w', default='35.0')
+    kd_w = LaunchConfiguration("kd_w", default="0.1")
+    use_mock_hardware = LaunchConfiguration("use_mock_hardware", default="true")
     is_sim = LaunchConfiguration('is_sim' , default='false')
+    enable_pd_regulator = LaunchConfiguration('enable_pd_regulator', default='True')
+    use_sim_time = LaunchConfiguration('use_sim_time', default='False')
+  
+    gui_declare = DeclareLaunchArgument(
+            "gui", default_value=gui, description="Start RViz2 automatically with this launch file.")
+   
+    use_mock_hardware_declare = DeclareLaunchArgument(
+            "use_mock_hardware", default_value=use_mock_hardware,description="Start robot with mock hardware mirroring command to its states.")
+    
+    use_sim_time_declare = DeclareLaunchArgument('use_sim_time', default_value=use_sim_time,
+                                                                    description='Use simulation clock if true')
+    kp_v_val_declare = DeclareLaunchArgument('kp_v', default_value=kp_v, description='Proportional gain for linear velocity')
+    kd_v_val_declare = DeclareLaunchArgument('kd_v', default_value=kd_v, description='Derivative gain for linear velocity')
+    kp_w_val_declare = DeclareLaunchArgument('kp_w', default_value=kp_w, description='Proportional gain for angular velocity')
+    kd_w_val_declare = DeclareLaunchArgument('kd_w', default_value=kd_w, description='Derivative gain for angular velocity')
+    enable_pd_regulator_declare = DeclareLaunchArgument('enable_pd_regulator', default_value=enable_pd_regulator
+        , description='Use PD regulator estimate residual control to the robot')
+    
     # Get URDF via xacro
     robot_description_content = Command(
         [
@@ -79,6 +73,7 @@ def generate_launch_description():
             " ",
         ]
     )
+    
     robot_description = {"robot_description": robot_description_content}
  
     robot_controllers = PathJoinSubstitution(
@@ -90,9 +85,6 @@ def generate_launch_description():
     )
 
     base_launch = os.path.join(get_package_share_directory("hunter_base"), "launch", "hunter_base.launch.py")
-    # rviz_config_file = PathJoinSubstitution(
-    #     [FindPackageShare("ros2_control_demo_description"), "diffbot/rviz", "diffbot.rviz"]
-    # t
  
     control_node = Node(
         package="controller_manager",
@@ -100,63 +92,40 @@ def generate_launch_description():
         parameters=[robot_description, robot_controllers],
         output="both",
     )
+    
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
-        # remappings=[
-            # ("/diff_drive_controller/cmd_vel_unstamped", "/cmd_vel"),
-        # ],
     )
+    
+    hunter_base_node = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(base_launch),
+            launch_arguments={
+                'use_sim_time': use_sim_time,
+                'kp_v': kp_v,
+                'kd_v': kd_v,
+                'kp_w': kp_w,
+                'kd_w': kd_w,
+                'enable_pd_regulator': enable_pd_regulator
+                }.items(),
+    )
+    
+    # Create the launch description and populate
+    ld = LaunchDescription()
 
-
-    # rviz_node = Node(
-    #     package="rviz2",
-    #     executable="rviz2",
-    #     name="rviz2",
-    #     output="log",
-    #     arguments=["-d", rviz_config_file],
-    #     condition=IfCondition(gui),
-    # )
- 
-    # joint_state_broadcaster_spawner = Node(
-        # package="controller_manager",
-        # executable="spawner",
-        # arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
-    # )
- 
-    # robot_controller_spawner = Node(
-        # package="controller_manager",
-        # executable="spawner",
-        # arguments=["diff_drive_controller", "--controller-manager", "/controller_manager"],
-    # )
- 
-    # Delay rviz start after `joint_state_broadcaster`
-    # delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
-    #     event_handler=OnProcessExit(
-    #         target_action=joint_state_broadcaster_spawner,
-    #         on_exit=[rviz_node],
-    #     )
-    # )
- 
-    # Delay start of robot_controller after `joint_state_broadcaster`
-    # delay_robot_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
-        # event_handler=OnProcessExit(
-            # target_action=joint_state_broadcaster_spawner,
-            # on_exit=[robot_controller_spawner],
-        # )
-    # )
-    # --------------------- SENSOR BRINGUPS ----------
-    nodes = [
-        # control_node,
-        robot_state_pub_node,
-        # joint_state_broadcaster_spawner,
-        # delay_rviz_after_joint_state_broadcaster_spawner,
-        # delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
-    ]
- 
-    launches=  [IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(base_launch)
-        ),]
-    return LaunchDescription(declared_arguments +nodes  + launches)
+    # Declare the launch options
+    ld.add_action(gui_declare)
+    ld.add_action(use_mock_hardware_declare)
+    ld.add_action(kp_v_val_declare)
+    ld.add_action(kd_v_val_declare)
+    ld.add_action(kp_w_val_declare)
+    ld.add_action(kd_w_val_declare)
+    ld.add_action(enable_pd_regulator_declare)
+    ld.add_action(use_sim_time_declare)
+    
+    ld.add_action(robot_state_pub_node)
+    ld.add_action(hunter_base_node)
+   
+    return ld
