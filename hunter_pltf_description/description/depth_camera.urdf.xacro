@@ -39,7 +39,7 @@
             <visualize>true</visualize>
             <update_rate>10</update_rate>
             <camera>
-                <horizontal_fov>1.089</horizontal_fov>
+                <horizontal_fov>2.089</horizontal_fov>
                 <image>
                     <format>B8G8R8</format>
                     <width>640</width>
