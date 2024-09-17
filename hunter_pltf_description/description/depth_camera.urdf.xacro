@@ -56,6 +56,17 @@
                 <hack_baseline>0.07</hack_baseline>
                 <min_depth>0.4</min_depth>
                 <max_depth>6</max_depth>
+                <ros>
+                    <namespace></namespace>
+                    <qos>
+                        <topic name="/${name}/points">
+                            <publisher>
+                                <reliability>best_effort</reliability>  <!-- Change to 'best_effort' -->
+                                <durability>volatile</durability>       <!-- Optionally set durability -->
+                            </publisher>
+                        </topic>
+                    </qos>
+                </ros>
             </plugin>
         </sensor>
     </gazebo>
