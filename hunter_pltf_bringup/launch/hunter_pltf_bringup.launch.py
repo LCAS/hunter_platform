@@ -13,20 +13,12 @@
 # limitations under the License.
  
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, RegisterEventHandler , IncludeLaunchDescription
-from launch.conditions import IfCondition
-from launch.event_handlers import OnProcessExit
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
-import ament_index_python.packages
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-import launch
-import launch_ros.actions
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch_ros.actions import ComposableNodeContainer
-from launch_ros.descriptions import ComposableNode
-import yaml
 import os
  
 def generate_launch_description():
@@ -45,6 +37,7 @@ def generate_launch_description():
     gui_declare = DeclareLaunchArgument(
             "gui", default_value=gui, description="Start RViz2 automatically with this launch file.")
    
+    # IH: THIS PARAM IS NOT USED
     use_mock_hardware_declare = DeclareLaunchArgument(
             "use_mock_hardware", default_value=use_mock_hardware,description="Start robot with mock hardware mirroring command to its states.")
     

@@ -1,124 +1,134 @@
-from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
-from launch.event_handlers import OnProcessExit
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, EnvironmentVariable, FindExecutable, LaunchConfiguration, PathJoinSubstitution
-from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
-
-from ament_index_python.packages import get_package_share_directory
-
-from pathlib import Path
 import os
+from launch import LaunchDescription
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    ExecuteProcess,
+    RegisterEventHandler,
+)
+from launch_ros.actions import Node
+from launch.event_handlers import OnProcessExit
+from launch.substitutions import LaunchConfiguration, Command, FindExecutable, PathJoinSubstitution
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from ament_index_python.packages import get_package_share_directory
+from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
-
-    # Include the robot_state_publisher launch file, provided by our own package. Force sim time to be enabled
-    # !!! MAKE SURE YOU SET THE PACKAGE NAME CORRECTLY !!!
+    # Package directories
     hunter_gazebo_pkg_dir = get_package_share_directory('hunter_pltf_gazebo')
-    world_path = LaunchConfiguration('world_path' , default=os.path.join(hunter_gazebo_pkg_dir, 'worlds', 'empty_world.world'))
-    # Launch configuration variables specific to simulation
-    prefix = LaunchConfiguration('prefix')
+
+    # Launch configurations
+    world_path = LaunchConfiguration(
+        'world_path', default=os.path.join(hunter_gazebo_pkg_dir, 'worlds', 'empty_world.world')
+    )
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
     x_pose = LaunchConfiguration('x_pose', default='0.0')
     y_pose = LaunchConfiguration('y_pose', default='0.0')
     roll = LaunchConfiguration('roll', default='0.0')
     pitch = LaunchConfiguration('pitch', default='0.0')
     yaw = LaunchConfiguration('yaw', default='1.45')
-    gazebo_verbose = LaunchConfiguration('gazebo_verbose', default='true')
-    rsp = IncludeLaunchDescription(
-                PythonLaunchDescriptionSource([os.path.join(
-                    get_package_share_directory('hunter_pltf_description'),'launch','pltf_rsp.launch.py'
-                )]), launch_arguments={'use_sim_time': use_sim_time , 'is_sim': 'true'}.items()
+
+    # Gazebo parameters
+    gazebo_params_file = os.path.join(hunter_gazebo_pkg_dir, 'config', 'gazebo_params.yaml')
+
+    robot_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            PathJoinSubstitution(
+                [FindPackageShare("hunter_pltf_description"), "description" ,"hunter_pltf.urdf.xacro"]
+            ),
+            " ",
+            "is_sim:=",
+             use_sim_time,
+             " ",
+            "prefix:=''",
+            " ",
+        ]
+    )
+    robot_description = {
+        "robot_description": ParameterValue(robot_description_content, value_type=str)
+    }
+    # Create a robot_state_publisher node
+    node_robot_state_publisher = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        output='screen',
+        parameters=[robot_description, {'use_sim_time': use_sim_time}]
     )
 
-    pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
-    gzserver = IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource([os.path.join(pkg_gazebo_ros, 'launch', 'gzserver.launch.py')]),
-                    launch_arguments={'world': world_path, 'verbose': gazebo_verbose, 'shell':'false'}.items())
+    # Include the Gazebo launch file, provided by the gazebo_ros package
+    gazebo = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')]),
+        launch_arguments={'extra_gazebo_args': '--ros-args --params-file ' + gazebo_params_file}.items()
+    )
+
+    spawn_entity = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        arguments=[
+            '-topic', 'robot_description',
+            '-entity', 'hunter_gazebo',
+            '-x', x_pose,
+            '-y', y_pose,
+            '-z', '0.01',
+            '-R', roll,
+            '-P', pitch,
+            '-Y', yaw,
+        ],
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}],
+    )
+
+    load_joint_state_broadcaster = ExecuteProcess(
+        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
+             'joint_state_broadcaster'],
+        output='screen'
+    )
+
+    load_tricycle_controller = ExecuteProcess(
+        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
+             'ackermann_like_controller'],
+        output='screen'
+    )
     
-    gzclient = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_gazebo_ros, 'launch', 'gzclient.launch.py')
-        )
+    rviz = Node(
+        package='rviz2',
+        executable='rviz2',
+        arguments=[
+            '-d',
+            os.path.join(os.path.join(get_package_share_directory('hunter_description')), 'rviz/robot_view.rviz'),
+        ],
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}]
     )
 
-    # Run the spawner node from the gazebo_ros package. The entity name doesn't really matter if you only have a single robot.
-    spawn_entity = Node(package='gazebo_ros', executable='spawn_entity.py',
-                        arguments=['-topic', 'robot_description',
-                                   '-entity', 'hunter_gazebo' , 
-                                   '-x', x_pose,
-                                   '-y', y_pose,
-                                   '-z', '0.01',     
-                                   '-R', roll,
-                                   '-P', pitch,
-                                   '-Y', yaw],
-                        output='screen')
-
-
-    diff_drive_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["diff_drive_controller"],
-    )
-
-    joint_broad_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_state_broadcaster"],
-    )
-
-    # diffdrive_controller_spawn_callback = RegisterEventHandler(
-    #     event_handler=OnProcessExit(
-    #         target_action=joint_broad_spawner,
-    #         on_exit=[diff_drive_spawner],
-    #     )
-    # )
-    # Launch them all!
+   # Launch description
     return LaunchDescription([
-        DeclareLaunchArgument(
-            'use_sim_time',
-            default_value='true',
-            description='Use simulation (Gazebo) clock if true'),
-        DeclareLaunchArgument(
-            'x_pose',
-            default_value='20.7508434296',
-            description='Start pose, x'),
-        DeclareLaunchArgument(
-            'y_pose',
-            default_value='-4.37950954437',
-            description='Start pose, y'),
-        DeclareLaunchArgument(
-            'roll',
-            default_value='0.0',
-            description='Start roll angle'),
-        DeclareLaunchArgument(
-            'pitch',
-            default_value='0.0',
-            description='Start pitch angle'),
-        DeclareLaunchArgument(
-            'yaw',
-            default_value=yaw,
-            description='Start yaw angle'),
-        DeclareLaunchArgument(
-            'world_path',
-            default_value=world_path,
-            description='Gazebo sim world'),
-        DeclareLaunchArgument(
-            'gazebo_verbose',
-            default_value='true',
-            description='Log the whole processing'),
-        DeclareLaunchArgument(
-            'with_gui',
-            default_value='true',
-            description='Run Gazebo Sim GUI'),
-        rsp,
-        # gazebo,
-        gzserver,
-        gzclient,
+        DeclareLaunchArgument('use_sim_time', default_value='true', description='Use simulation clock'),
+        DeclareLaunchArgument('x_pose', default_value='20.0', description='Start x position'),
+        DeclareLaunchArgument('y_pose', default_value='-4.0', description='Start y position'),
+        DeclareLaunchArgument('roll', default_value='0.0', description='Start roll angle'),
+        DeclareLaunchArgument('pitch', default_value='0.0', description='Start pitch angle'),
+        DeclareLaunchArgument('yaw', default_value='1.45', description='Start yaw angle'),
+        DeclareLaunchArgument('world_path', default_value=world_path, description='Gazebo world file path'),
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=spawn_entity,
+                on_exit=[load_joint_state_broadcaster],
+            )
+        ),
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=load_joint_state_broadcaster,
+                on_exit=[load_tricycle_controller],
+            )
+        ),
+        gazebo,
+        # rviz,
+        node_robot_state_publisher,
         spawn_entity,
-        diff_drive_spawner,
-        joint_broad_spawner,
-    #   diffdrive_controller_spawn_callback  
     ])

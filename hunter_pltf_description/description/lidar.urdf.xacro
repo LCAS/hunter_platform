@@ -19,7 +19,9 @@
             <geometry>
                 <cylinder radius="0.01" length="0.1"/>
             </geometry>
-            <material name="black"/>
+            <material name="black">
+                <color rgba="0 0 0 1"/>
+            </material>
         </visual>
         <collision>
             <geometry>

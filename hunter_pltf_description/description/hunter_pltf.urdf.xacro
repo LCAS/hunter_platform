@@ -3,11 +3,10 @@
    <xacro:arg name="is_sim" default="true"/>
    <xacro:arg name="prefix" default="" />
    <xacro:if value="$(arg is_sim)">
-      <xacro:include filename="$(find hunter_description)/description/hunter.urdf.xacro"/>
+      <xacro:include filename="$(find hunter_description)/description/robot.urdf.xacro"/>
    </xacro:if>
    <xacro:unless value="$(arg is_sim)">
-   <xacro:include filename="$(find hunter_description)/description/hunter_core.urdf.xacro"/>
-   <xacro:dogbot prefix="$(arg prefix)" is_sim="$(arg is_sim)"/>
+   <xacro:include filename="$(find hunter_description)/description/robot_core.xacro"/>
    </xacro:unless>
 
    <xacro:include filename="$(find hunter_pltf_description)/description/lidar.urdf.xacro"/>
@@ -19,12 +18,12 @@
    <xacro:hunter_imu name="$(arg prefix)imu1" is_sim="$(arg is_sim)" x="0.0" y="0.0" z="0.2" topic="/gps_base/yaw"/>
    <xacro:hunter_lidar name="$(arg prefix)front_lidar" x="0.615" y="0.28" z="0.33" is_sim="$(arg is_sim)" />
    <xacro:hunter_lidar name="$(arg prefix)back_lidar" x="-0.565" y="-0.28" z="0.33"  yaw="3.14" is_sim="$(arg is_sim)"/>
-   <xacro:hunter_depth_camera name="front_camera" x="0.55" y="-0.00" z="0.61" is_sim="$(arg is_sim)" />
-   <xacro:hunter_depth_camera name="back_camera" x="-0.55" y="-0.00" z="0.61" is_sim="$(arg is_sim)" yaw="3.14"/>
-   <xacro:hunter_depth_camera name="fish_front_camera" x="0.55" y="0.00" z="0.93" is_sim="$(arg is_sim)" />
-   <xacro:hunter_depth_camera name="fish_right_camera" x="0.495" y="0.08" z="0.93" is_sim="$(arg is_sim)"  yaw="1.57"/>
+   <xacro:hunter_depth_camera name="front_camera" x="0.55" y="-0.00" z="0.50" is_sim="$(arg is_sim)" />
+   <xacro:hunter_depth_camera name="back_camera" x="-0.55" y="-0.00" z="0.50" is_sim="$(arg is_sim)" yaw="3.14"/>
+   <!-- <xacro:hunter_depth_camera name="fish_front_camera" x="0.55" y="0.00" z="0.93" is_sim="$(arg is_sim)" />
+   <xacro:hunter_depth_camera name="fish_right_camera" x="0.495" y="0.08" z="0.93" is_sim="$(arg is_sim)"  yaw="1.57"/> -->
    <!-- <xacro:hunter_depth_camera name="fish_back_camera" x="0.179" y="0.00" z="1.28" is_sim="$(arg is_sim)" yaw="3.14" />-->
-   <xacro:hunter_depth_camera name="fish_left_camera" x="0.495" y="-0.08" z="0.93" is_sim="$(arg is_sim)" yaw="-1.57" />
+   <!-- <xacro:hunter_depth_camera name="fish_left_camera" x="0.495" y="-0.08" z="0.93" is_sim="$(arg is_sim)" yaw="-1.57" /> -->
    <xacro:hunter_gps name="$(arg prefix)gps_base" is_sim="$(arg is_sim)" x="-0.25" y="0.0" z="0.33"/>
    <xacro:hunter_gps name="$(arg prefix)back_antenna" is_sim="$(arg is_sim)" x="-0.5" y="-0.245" z="0.80"/>
    <xacro:hunter_gps name="$(arg prefix)front_antenna" is_sim="$(arg is_sim)" x="0.5" y="-0.245" z="0.80"/>
