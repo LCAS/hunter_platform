@@ -1,23 +1,16 @@
 from launch_ros.actions import Node
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
-from launch.event_handlers import OnProcessExit
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, EnvironmentVariable, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-
-from ament_index_python.packages import get_package_share_directory
-
-from pathlib import Path
-import os
-import xacro
-
+from launch.conditions import IfCondition
 
 def generate_launch_description():
 
     use_sim_time = LaunchConfiguration('use_sim_time')
-    is_sim = LaunchConfiguration('is_sim' , default='true')
+    gui = LaunchConfiguration("gui")
+    
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
@@ -27,12 +20,17 @@ def generate_launch_description():
             ),
             " ",
             "is_sim:=",
-             is_sim,
+             use_sim_time,
              " ",
             "prefix:=''",
             " ",
         ]
     )
+
+    rviz_config_file = PathJoinSubstitution(
+        [FindPackageShare("hunter_description"), "rviz", "robot_view.rviz"]
+    )    
+    
     # Create a robot_state_publisher node
     params = {'robot_description': robot_description_content, 'use_sim_time': use_sim_time}
     node_robot_state_publisher = Node(
@@ -42,17 +40,35 @@ def generate_launch_description():
         parameters=[params]
     )
 
+    joint_state_publisher_node = Node(
+        package="joint_state_publisher_gui",
+        executable="joint_state_publisher_gui",
+        condition=IfCondition(gui),
+    )
+
+    rviz_node = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        output="log",
+        arguments=["-d", rviz_config_file],
+        condition=IfCondition(gui),
+    )
 
     # Launch!
     return LaunchDescription([  
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='false',
-            description='Use sim time if true'),
+            description='Use sim time if true',
+        ),
         DeclareLaunchArgument(
-            'is_sim',
-            default_value='true',
-            description='real robot or sim'),
-        
-        node_robot_state_publisher
+            "gui",
+            default_value="true",
+            description="Start Rviz2 and Joint State Publisher gui automatically \
+        with this launch file.",
+        ),
+        node_robot_state_publisher,
+        joint_state_publisher_node,
+        rviz_node,
     ])
