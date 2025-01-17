@@ -10,6 +10,7 @@ def generate_launch_description():
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     gui = LaunchConfiguration("gui")
+    livox = LaunchConfiguration("livox")
     
     robot_description_content = Command(
         [
@@ -21,6 +22,9 @@ def generate_launch_description():
             " ",
             "is_sim:=",
              use_sim_time,
+             " ",
+            "is_livox:=",
+             livox,
              " ",
             "prefix:=''",
             " ",
@@ -61,6 +65,11 @@ def generate_launch_description():
             'use_sim_time',
             default_value='false',
             description='Use sim time if true',
+        ),
+        DeclareLaunchArgument(
+            'livox',
+            default_value='true',
+            description='load livox lidars in sim',
         ),
         DeclareLaunchArgument(
             "gui",

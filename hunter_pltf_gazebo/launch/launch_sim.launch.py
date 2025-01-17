@@ -29,6 +29,7 @@ def generate_launch_description():
     roll = LaunchConfiguration('roll', default='0.0')
     pitch = LaunchConfiguration('pitch', default='0.0')
     yaw = LaunchConfiguration('yaw', default='1.45')
+    livox = LaunchConfiguration("livox", default='true')
 
     # Gazebo parameters
     gazebo_params_file = os.path.join(hunter_gazebo_pkg_dir, 'config', 'gazebo_params.yaml')
@@ -44,10 +45,14 @@ def generate_launch_description():
             "is_sim:=",
              use_sim_time,
              " ",
+            "is_livox:=",
+             livox,
+             " ",
             "prefix:=''",
             " ",
         ]
     )
+    
     robot_description = {
         "robot_description": ParameterValue(robot_description_content, value_type=str)
     }
@@ -118,6 +123,7 @@ def generate_launch_description():
         DeclareLaunchArgument('pitch', default_value='0.0', description='Start pitch angle'),
         DeclareLaunchArgument('yaw', default_value='1.45', description='Start yaw angle'),
         DeclareLaunchArgument('world_path', default_value=world_path, description='Gazebo world file path'),
+        DeclareLaunchArgument('livox', default_value='true', description='load livox lidars in sim',),
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,
