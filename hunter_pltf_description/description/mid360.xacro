@@ -34,9 +34,14 @@
       <xacro:box_inertia m="${mass}" w="${width}" d="${length}" h="${height}"/>
       <visual>
         <geometry>
-          <mesh filename="$(find ros2_livox_simulation)/meshes/mid-360-scaled.dae"/>
+          <mesh filename="file://$(find hunter_pltf_description)/meshes/livox360.dae"/>
         </geometry>
       </visual>
+      <collision>
+        <geometry>
+          <mesh filename="file://$(find hunter_pltf_description)/meshes/livox360.dae"/>
+        </geometry>
+      </collision>
     </link>
 
     <joint name="${name}_joint" type="fixed">
@@ -81,7 +86,7 @@
             </ray>
             <visualize>false</visualize>
             <samples>${samples}</samples>
-            <downsample>5</downsample>
+            <downsample>1</downsample>
             <csv_file_name>$(find ros2_livox_simulation)/scan_mode/mid360.csv</csv_file_name>
             <topic>${topic}</topic>
           </plugin>
