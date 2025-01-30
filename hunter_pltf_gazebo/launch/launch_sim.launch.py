@@ -7,6 +7,7 @@ from launch.actions import (
     RegisterEventHandler,
 )
 from launch_ros.actions import Node
+from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import LaunchConfiguration, Command, FindExecutable, PathJoinSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -29,6 +30,8 @@ def generate_launch_description():
     roll = LaunchConfiguration('roll', default='0.0')
     pitch = LaunchConfiguration('pitch', default='0.0')
     yaw = LaunchConfiguration('yaw', default='1.45')
+    use_rviz = LaunchConfiguration('use_rviz', default='false')
+    use_gazebo = LaunchConfiguration('use_gazebo', default='true')
 
     # Gazebo parameters
     gazebo_params_file = os.path.join(hunter_gazebo_pkg_dir, 'config', 'gazebo_params.yaml')
@@ -66,7 +69,8 @@ def generate_launch_description():
         launch_arguments={
             'world': world_path,
             'extra_gazebo_args': '--ros-args --params-file ' + gazebo_params_file
-        }.items()
+        }.items(),
+        condition=IfCondition(use_gazebo)
     )
 
     spawn_entity = Node(
@@ -106,7 +110,8 @@ def generate_launch_description():
             os.path.join(os.path.join(get_package_share_directory('hunter_description')), 'rviz/robot_view.rviz'),
         ],
         output='screen',
-        parameters=[{'use_sim_time': use_sim_time}]
+        parameters=[{'use_sim_time': use_sim_time}],
+        condition=IfCondition(use_rviz)
     )
 
    # Launch description
@@ -118,6 +123,8 @@ def generate_launch_description():
         DeclareLaunchArgument('pitch', default_value='0.0', description='Start pitch angle'),
         DeclareLaunchArgument('yaw', default_value='1.45', description='Start yaw angle'),
         DeclareLaunchArgument('world_path', default_value=world_path, description='Gazebo world file path'),
+        DeclareLaunchArgument('use_rviz', default_value='false', description='Whether to start RViZ'),
+        DeclareLaunchArgument('use_gazebo', default_value='true', description='Whether to start Gazebo'),
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,
@@ -131,7 +138,7 @@ def generate_launch_description():
             )
         ),
         gazebo,
-        # rviz,
+        rviz,
         node_robot_state_publisher,
         spawn_entity,
     ])
