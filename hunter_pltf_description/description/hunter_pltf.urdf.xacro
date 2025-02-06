@@ -6,7 +6,7 @@
       <xacro:include filename="$(find hunter_description)/description/robot.urdf.xacro"/>
    </xacro:if>
    <xacro:unless value="$(arg is_sim)">
-   <xacro:include filename="$(find hunter_description)/description/robot_core.xacro"/>
+   <xacro:include filename="$(find hunter_description)/description/robot_core_real_hack.xacro"/>
    </xacro:unless>
 
    <xacro:include filename="$(find hunter_pltf_description)/description/lidar.urdf.xacro"/>
@@ -28,7 +28,7 @@
    <!-- <xacro:hunter_gps name="$(arg prefix)back_antenna" is_sim="$(arg is_sim)" x="-0.5" y="-0.245" z="0.80"/> -->
    <!-- <xacro:hunter_gps name="$(arg prefix)front_antenna" is_sim="$(arg is_sim)" x="0.5" y="-0.245" z="0.80"/> -->
    
-   <xacro:mid360 name="$(arg prefix)front_lidar_link" topic="front_lidar/points" origin_xyz="0.615 0.28 0.33" origin_rpy="0 0 3.14159" is_sim="$(arg is_sim)"/>
-   <xacro:mid360 name="$(arg prefix)back_lidar_link" topic="back_lidar/points" origin_xyz="-0.615 -0.28 0.33" origin_rpy="0 0 0" is_sim="$(arg is_sim)"/>
+   <xacro:mid360 name="$(arg prefix)front_lidar_link" topic="front_lidar/points" origin_xyz="0.615 0.28 0.33" origin_rpy="0 0 0" is_sim="$(arg is_sim)"/>
+   <xacro:mid360 name="$(arg prefix)back_lidar_link" topic="back_lidar/points" origin_xyz="-0.615 -0.28 0.33" origin_rpy="0 0 3.14159" is_sim="$(arg is_sim)"/>
 
 </robot>
