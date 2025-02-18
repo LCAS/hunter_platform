@@ -31,7 +31,7 @@ def generate_launch_description():
     kd_w = LaunchConfiguration("kd_w", default="0.1")
     use_mock_hardware = LaunchConfiguration("use_mock_hardware", default="true")
     is_sim = LaunchConfiguration('is_sim' , default='false')
-    enable_pd_regulator = LaunchConfiguration('enable_pd_regulator', default='True')
+    enable_pd_regulator = LaunchConfiguration('enable_pd_regulator', default='False')
     use_sim_time = LaunchConfiguration('use_sim_time', default='False')
   
     gui_declare = DeclareLaunchArgument(
