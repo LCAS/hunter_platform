@@ -57,7 +57,8 @@ sensors:
     yaw: 0.0
   
   # Front Mid-360 LiDAR
-  front_lidar_link:
+  # Note: The key name here (front_lidar) maps to xacro argument prefix front_lidar_*
+  front_lidar:
     x: 0.56
     y: 0.235
     z: 0.46
@@ -73,7 +74,8 @@ sensors:
     topic: "front_lidar/points"
   
   # Back Mid-360 LiDAR
-  back_lidar_link:
+  # Note: The key name here (back_lidar) maps to xacro argument prefix back_lidar_*
+  back_lidar:
     x: -0.56
     y: -0.235
     z: 0.46

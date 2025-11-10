@@ -1,12 +1,21 @@
-# Hunter Platform Robot Configuration Files
+# Generic Robot Configuration System
 
-This directory contains robot-specific configuration files for individual Hunter platform instances. Each robot has unique sensor mounting positions due to manufacturing tolerances and calibration requirements.
+This directory contains a **generic, reusable** robot configuration system that automatically maps YAML configurations to URDF xacro arguments. The system is not specific to Hunter platforms and can be used with any ROS robot.
+
+## Key Features
+
+- **Load from anywhere**: Local files, absolute paths, file:// URLs, or https:// URLs
+- **Generic mapping**: Automatically maps YAML structure to xacro arguments (no hardcoded sensor names)
+- **Inheritance-based**: Robot-specific configs only override what differs from defaults
+- **Reusable**: Works with any URDF/xacro structure, not just Hunter platform
 
 ## Overview
 
 The configuration system allows you to:
-- Define baseline sensor poses in `default.yaml`
-- Create robot-specific overrides in separate YAML files (e.g., `hunter_01.yaml`)
+- Define baseline sensor poses in `default.yaml` or any custom file
+- Create robot-specific overrides in separate YAML files
+- Load configurations from local files, remote URLs, or any accessible location
+- Automatically map nested YAML structures to flat xacro arguments
 - Maintain only the differences from the baseline, minimizing duplication
 - Version control calibration data for each robot instance
 
@@ -37,17 +46,19 @@ sensors:
     yaw: 0.0    # Orientation in radians (rotation around Z-axis)
 ```
 
-### Sensor Names
+### Sensor Names (Hunter Platform Example)
 
-The following sensors are configurable:
+For the Hunter platform, the following sensors are configurable:
 
 - **`imu`**: Rear IMU sensor (at GPS base location)
 - **`imu1`**: Front IMU sensor
 - **`front_camera`**: Front depth camera
 - **`back_camera`**: Rear depth camera
 - **`gps_base`**: GPS base antenna
-- **`front_lidar_link`**: Front Mid-360 LiDAR
-- **`back_lidar_link`**: Rear Mid-360 LiDAR
+- **`front_lidar`**: Front Mid-360 LiDAR
+- **`back_lidar`**: Rear Mid-360 LiDAR
+
+**Note**: The sensor names in your YAML should match the xacro argument prefixes in your URDF. The system automatically flattens nested structures (e.g., `sensors.imu.x` → `imu_x`).
 
 ### LiDAR Configuration
 
@@ -96,13 +107,14 @@ front_lidar_link:
 
 ### In Launch Files
 
-Specify the robot configuration using the `robot_id` argument:
+The system supports multiple ways to specify robot configurations:
 
+#### 1. Simple Robot ID (Local File)
 ```bash
-# Using default configuration
+# Using default configuration from config/robots/default.yaml
 ros2 launch hunter_pltf_description pltf_rsp.launch.py
 
-# Using hunter_01 configuration
+# Using hunter_01 from config/robots/hunter_01.yaml
 ros2 launch hunter_pltf_description pltf_rsp.launch.py robot_id:=hunter_01
 
 # Using hunter_01 for bringup
@@ -112,12 +124,37 @@ ros2 launch hunter_pltf_bringup hunter_pltf_bringup.launch.py robot_id:=hunter_0
 ros2 launch hunter_pltf_gazebo launch_sim.launch.py robot_id:=hunter_01
 ```
 
+#### 2. Absolute File Path
+```bash
+# Load from absolute path
+ros2 launch hunter_pltf_description pltf_rsp.launch.py \
+    robot_id:=/path/to/my/robot_config.yaml
+```
+
+#### 3. File URL
+```bash
+# Load from file:// URL
+ros2 launch hunter_pltf_description pltf_rsp.launch.py \
+    robot_id:=file:///path/to/my/robot_config.yaml
+```
+
+#### 4. Remote HTTPS URL
+```bash
+# Load from remote server (e.g., central configuration repository)
+ros2 launch hunter_pltf_description pltf_rsp.launch.py \
+    robot_id:=https://config.example.com/robots/hunter_01.yaml
+```
+
 ### Environment Variable (Alternative)
 
 You can also set the robot ID via environment variable:
 
 ```bash
 export HUNTER_ROBOT_ID=hunter_01
+ros2 launch hunter_pltf_description pltf_rsp.launch.py
+
+# Or with full path/URL
+export HUNTER_ROBOT_ID=https://config.example.com/robots/hunter_01.yaml
 ros2 launch hunter_pltf_description pltf_rsp.launch.py
 ```
 
@@ -160,6 +197,83 @@ After creating or modifying a configuration:
    ```bash
    ros2 run tf2_tools view_frames
    ```
+
+## Generic YAML-to-Xacro Mapping
+
+The configuration system uses **automatic, generic mapping** from nested YAML structures to flat xacro arguments.
+
+### How It Works
+
+The system:
+1. Extracts the `sensors` section from your YAML (configurable)
+2. Flattens the nested structure using underscore separators
+3. Filters based on simulation mode (`_sim` vs `_real` suffixes)
+4. Converts all values to strings for xacro
+
+### Example Mapping
+
+**YAML Input:**
+```yaml
+sensors:
+  imu:
+    x: -0.25
+    y: 0.0
+    topic: "/imu/data"
+  front_lidar:
+    x: 0.56
+    roll_sim: 0.0
+    roll_real: -0.0174533
+```
+
+**Xacro Arguments (is_sim=True):**
+```
+imu_x:=-0.25
+imu_y:=0.0
+imu_topic:=/imu/data
+front_lidar_x:=0.56
+front_lidar_roll_sim:=0.0
+```
+
+**Xacro Arguments (is_sim=False):**
+```
+imu_x:=-0.25
+imu_y:=0.0
+imu_topic:=/imu/data
+front_lidar_x:=0.56
+front_lidar_roll_real:=-0.0174533
+```
+
+### Reusability for Other URDFs
+
+This system works with **any URDF**, not just Hunter platform:
+
+1. **Define your YAML structure** to match your xacro argument names
+2. **Use nested dictionaries** for organization (e.g., `sensors`, `joints`, `links`)
+3. **Flattening is automatic** - `sensors.camera.x` becomes `camera_x`
+4. **Use _sim/_real suffixes** for mode-specific values
+
+**Example for a different robot:**
+```yaml
+# my_robot_config.yaml
+robot_id: "myrobot_01"
+
+# Your own structure - not limited to "sensors"
+manipulator:
+  joint1:
+    position: 0.0
+    velocity_limit: 2.0
+  joint2:
+    position: 1.57
+    velocity_limit: 1.5
+
+sensors:
+  laser:
+    x: 0.3
+    y: 0.0
+    range: 30.0
+```
+
+This maps to: `joint1_position`, `joint1_velocity_limit`, `joint2_position`, etc.
 
 ## Calibration Guidelines
 
