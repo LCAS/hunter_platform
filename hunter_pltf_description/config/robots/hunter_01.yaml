@@ -1,0 +1,86 @@
+# Robot-specific configuration for Hunter-01
+# This file contains calibrated sensor poses for the Hunter-01 robot instance
+# Only values that differ from default.yaml need to be specified here
+
+robot_id: "hunter_01"
+
+# Sensor pose overrides for Hunter-01
+# This robot has been calibrated and has specific mounting variations
+# Calibration date: 2024-11-10
+# Calibration notes: Minor adjustments for manufacturing tolerances and physical measurements
+
+sensors:
+  # IMU sensor (rear, at GPS base location)
+  # Slight offset due to mounting bracket tolerance
+  imu:
+    x: -0.251
+    y: 0.001
+    z: 0.471
+    # roll, pitch, yaw use defaults (0.0, 0.0, 0.0)
+    # topic uses default: "/gps_base/yaw"
+  
+  # IMU sensor 1 (front)
+  # Adjusted based on physical measurement
+  imu1:
+    x: 0.249
+    y: -0.002
+    z: 0.469
+    # roll, pitch, yaw use defaults (0.0, 0.0, 0.0)
+    # topic uses default: "/imu/data"
+  
+  # Front depth camera
+  # Fine-tuned position after installation
+  front_camera:
+    x: 0.552
+    y: 0.001
+    z: 0.721
+    # roll, pitch, yaw use defaults (0.0, 0.0, 0.0)
+  
+  # Back depth camera
+  # Adjusted for mounting surface variation
+  back_camera:
+    x: -0.548
+    y: -0.001
+    z: 0.719
+    yaw: 3.14259265359  # Slightly adjusted from default 180 degrees
+  
+  # GPS base antenna
+  # Matches IMU position (co-located)
+  gps_base:
+    x: -0.251
+    y: 0.001
+    z: 0.471
+    # roll, pitch, yaw use defaults (0.0, 0.0, 0.0)
+  
+  # Front Mid-360 LiDAR
+  # Calibrated orientation for this specific unit
+  front_lidar_link:
+    x: 0.561
+    y: 0.236
+    z: 0.461
+    # Simulation RPY values use defaults
+    # Real hardware RPY values are calibrated:
+    roll_real: -0.0175
+    pitch_real: 0.001
+    yaw_real: 0.0088
+    # topic uses default: "front_lidar/points"
+  
+  # Back Mid-360 LiDAR
+  # Adjusted for mounting alignment
+  back_lidar_link:
+    x: -0.559
+    y: -0.236
+    z: 0.461
+    # Simulation RPY values use defaults
+    # Real hardware RPY values are calibrated:
+    roll_real: 0.001
+    pitch_real: 0.0
+    yaw_real: 3.13386335
+    # topic uses default: "back_lidar/points"
+
+# Notes:
+# - All measurements in meters for xyz, radians for rpy
+# - Values not specified here inherit from default.yaml
+# - Small variations (< 5mm, < 1 degree) are typical due to manufacturing tolerances
+# - These calibrated values should be used for both simulation and real robot deployment
+#   to maintain consistency across environments

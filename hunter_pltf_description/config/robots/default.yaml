@@ -1,0 +1,156 @@
+# Default robot configuration for Hunter Platform
+# This file contains the baseline sensor poses for all Hunter robots
+# Robot-specific configurations should inherit from this file and only override necessary values
+
+robot_id: "default"
+
+# Sensor pose configurations
+# All poses are specified relative to the base_link frame
+# Units: meters for xyz, radians for rpy (roll, pitch, yaw)
+
+sensors:
+  # IMU sensor (rear, at GPS base location)
+  imu:
+    x: -0.25
+    y: 0.0
+    z: 0.47
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+    topic: "/gps_base/yaw"
+  
+  # IMU sensor 1 (front)
+  imu1:
+    x: 0.25
+    y: 0.0
+    z: 0.47
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+    topic: "/imu/data"
+  
+  # Front depth camera
+  front_camera:
+    x: 0.55
+    y: 0.0
+    z: 0.72
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+  
+  # Back depth camera
+  back_camera:
+    x: -0.55
+    y: 0.0
+    z: 0.72
+    roll: 0.0
+    pitch: 0.0
+    yaw: 3.14159265359  # 180 degrees (facing backward)
+  
+  # GPS base antenna
+  gps_base:
+    x: -0.25
+    y: 0.0
+    z: 0.47
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+  
+  # Front Mid-360 LiDAR
+  front_lidar_link:
+    x: 0.56
+    y: 0.235
+    z: 0.46
+    # RPY values differ between simulation and real hardware
+    # Simulation uses: 0 0 0
+    # Real hardware uses: -0.0174533 0 0.00872665
+    roll_sim: 0.0
+    pitch_sim: 0.0
+    yaw_sim: 0.0
+    roll_real: -0.0174533
+    pitch_real: 0.0
+    yaw_real: 0.00872665
+    topic: "front_lidar/points"
+  
+  # Back Mid-360 LiDAR
+  back_lidar_link:
+    x: -0.56
+    y: -0.235
+    z: 0.46
+    # RPY values differ between simulation and real hardware
+    # Simulation uses: 0 0 3.14159
+    # Real hardware uses: 0 0 3.13286335
+    roll_sim: 0.0
+    pitch_sim: 0.0
+    yaw_sim: 3.14159265359  # 180 degrees
+    roll_real: 0.0
+    pitch_real: 0.0
+    yaw_real: 3.13286335
+    topic: "back_lidar/points"
+
+# Optional sensors (currently commented out in main xacro)
+# Uncomment and configure if needed for specific robots
+optional_sensors:
+  # front_lidar:  # 2D LiDAR (not Mid-360)
+  #   x: 0.615
+  #   y: 0.28
+  #   z: 0.33
+  #   roll: 0.0
+  #   pitch: 0.0
+  #   yaw: 0.0
+  
+  # back_lidar:  # 2D LiDAR (not Mid-360)
+  #   x: -0.565
+  #   y: -0.28
+  #   z: 0.33
+  #   roll: 0.0
+  #   pitch: 0.0
+  #   yaw: 3.14159265359
+  
+  # back_antenna:
+  #   x: -0.5
+  #   y: -0.245
+  #   z: 0.80
+  #   roll: 0.0
+  #   pitch: 0.0
+  #   yaw: 0.0
+  
+  # front_antenna:
+  #   x: 0.5
+  #   y: -0.245
+  #   z: 0.80
+  #   roll: 0.0
+  #   pitch: 0.0
+  #   yaw: 0.0
+  
+  # fish_front_camera:
+  #   x: 0.55
+  #   y: 0.0
+  #   z: 0.93
+  #   roll: 0.0
+  #   pitch: 0.0
+  #   yaw: 0.0
+  
+  # fish_right_camera:
+  #   x: 0.495
+  #   y: 0.08
+  #   z: 0.93
+  #   roll: 0.0
+  #   pitch: 0.0
+  #   yaw: 1.57079632679  # 90 degrees
+  
+  # fish_back_camera:
+  #   x: 0.179
+  #   y: 0.0
+  #   z: 1.28
+  #   roll: 0.0
+  #   pitch: 0.0
+  #   yaw: 3.14159265359  # 180 degrees
+  
+  # fish_left_camera:
+  #   x: 0.495
+  #   y: -0.08
+  #   z: 0.93
+  #   roll: 0.0
+  #   pitch: 0.0
+  #   yaw: -1.57079632679  # -90 degrees
