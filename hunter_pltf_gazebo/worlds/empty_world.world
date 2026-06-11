@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
-<sdf version="1.5">
+<sdf version="1.9">
   <world name="default">
     <!-- A global light source -->
     <include>
-      <uri>model://sun</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun</uri>
     </include>
     <!-- A ground plane -->
     <include>
-      <uri>model://ground_plane</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground Plane</uri>
     </include>
     <spherical_coordinates>
       <surface_model>EARTH_WGS84</surface_model>

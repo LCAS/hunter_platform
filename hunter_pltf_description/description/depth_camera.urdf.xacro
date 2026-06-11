@@ -28,6 +28,7 @@
 <xacro:if value="${is_sim}">
     <gazebo reference="${name}_link">
         <sensor name="${name}_camera" type="depth">
+            <topic>/${name}/depth</topic>
             <pose> 0 0 0 0 0 0 </pose>
             <visualize>true</visualize>
             <update_rate>10</update_rate>
@@ -43,24 +44,6 @@
                     <far>8.0</far>
                 </clip>
             </camera>
-            <plugin name="${name}_camera_controller" filename="libgazebo_ros_camera.so">
-                <camera_name>${name}</camera_name>
-                <frame_name>${name}_link_optical</frame_name>
-                <hack_baseline>0.07</hack_baseline>
-                <min_depth>0.4</min_depth>
-                <max_depth>6</max_depth>
-                <ros>
-                    <namespace></namespace>
-                    <qos>
-                        <topic name="/${name}/points">
-                            <publisher>
-                                <reliability>best_effort</reliability>  <!-- Change to 'best_effort' -->
-                                <durability>volatile</durability>       <!-- Optionally set durability -->
-                            </publisher>
-                        </topic>
-                    </qos>
-                </ros>
-            </plugin>
         </sensor>
     </gazebo>
 </xacro:if>

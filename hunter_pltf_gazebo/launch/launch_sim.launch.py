@@ -33,9 +33,6 @@ def generate_launch_description():
     use_rviz = LaunchConfiguration('use_rviz', default='false')
     use_gazebo = LaunchConfiguration('use_gazebo', default='true')
 
-    # Gazebo parameters
-    gazebo_params_file = os.path.join(hunter_gazebo_pkg_dir, 'config', 'gazebo_params.yaml')
-
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
@@ -62,23 +59,22 @@ def generate_launch_description():
         parameters=[robot_description, {'use_sim_time': use_sim_time}]
     )
 
-    # Include the Gazebo launch file, provided by the gazebo_ros package
+    # Include Gazebo Sim.
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
-            get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')]),
+            get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')]),
         launch_arguments={
-            'world': world_path,
-            'extra_gazebo_args': '--ros-args --params-file ' + gazebo_params_file
+            'gz_args': ['-r -v 4 ', world_path],
         }.items(),
         condition=IfCondition(use_gazebo)
     )
 
     spawn_entity = Node(
-        package='gazebo_ros',
-        executable='spawn_entity.py',
+        package='ros_gz_sim',
+        executable='create',
         arguments=[
             '-topic', 'robot_description',
-            '-entity', 'hunter_gazebo',
+            '-name', 'hunter_gazebo',
             '-x', x_pose,
             '-y', y_pose,
             '-z', '0.01',
@@ -88,6 +84,13 @@ def generate_launch_description():
         ],
         output='screen',
         parameters=[{'use_sim_time': use_sim_time}],
+    )
+
+    clock_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+        output='screen',
     )
 
     load_joint_state_broadcaster = ExecuteProcess(
@@ -138,6 +141,7 @@ def generate_launch_description():
             )
         ),
         gazebo,
+        clock_bridge,
         rviz,
         node_robot_state_publisher,
         spawn_entity,
