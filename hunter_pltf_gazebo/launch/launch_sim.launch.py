@@ -5,11 +5,12 @@ from launch.actions import (
     IncludeLaunchDescription,
     ExecuteProcess,
     RegisterEventHandler,
+    SetEnvironmentVariable,
 )
 from launch_ros.actions import Node
 from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import LaunchConfiguration, Command, FindExecutable, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, Command, FindExecutable, PathJoinSubstitution, PythonExpression
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
 from launch_ros.substitutions import FindPackageShare
@@ -32,6 +33,8 @@ def generate_launch_description():
     yaw = LaunchConfiguration('yaw', default='1.45')
     use_rviz = LaunchConfiguration('use_rviz', default='false')
     use_gazebo = LaunchConfiguration('use_gazebo', default='true')
+    with_gui = LaunchConfiguration('with_gui', default='false')
+    gz_ip = LaunchConfiguration('gz_ip', default='127.0.0.1')
 
     robot_description_content = Command(
         [
@@ -59,20 +62,34 @@ def generate_launch_description():
         parameters=[robot_description, {'use_sim_time': use_sim_time}]
     )
 
-    # Include Gazebo Sim.
-    gazebo = IncludeLaunchDescription(
+    # Start the Gazebo Sim server explicitly. In headless/container environments
+    # `gz sim` may bring up only the GUI client, leaving ros_gz_sim/create
+    # waiting forever for /gazebo/worlds.
+    gazebo_server = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')]),
         launch_arguments={
-            'gz_args': ['-r -v 4 ', world_path],
+            'gz_args': ['-s -r -v 4 ', world_path],
         }.items(),
         condition=IfCondition(use_gazebo)
+    )
+
+    gazebo_gui = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([os.path.join(
+            get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')]),
+        launch_arguments={
+            'gz_args': '-g -v 4',
+        }.items(),
+        condition=IfCondition(PythonExpression([
+            "'", use_gazebo, "' == 'true' and '", with_gui, "' == 'true'"
+        ]))
     )
 
     spawn_entity = Node(
         package='ros_gz_sim',
         executable='create',
         arguments=[
+            '-world', 'default',
             '-topic', 'robot_description',
             '-name', 'hunter_gazebo',
             '-x', x_pose,
@@ -135,6 +152,13 @@ def generate_launch_description():
         DeclareLaunchArgument('world_path', default_value=world_path, description='Gazebo world file path'),
         DeclareLaunchArgument('use_rviz', default_value='false', description='Whether to start RViZ'),
         DeclareLaunchArgument('use_gazebo', default_value='true', description='Whether to start Gazebo'),
+        DeclareLaunchArgument('with_gui', default_value='false', description='Whether to start the Gazebo GUI client'),
+        DeclareLaunchArgument(
+            'gz_ip',
+            default_value='127.0.0.1',
+            description='Gazebo Transport IP address used for local discovery',
+        ),
+        SetEnvironmentVariable('GZ_IP', gz_ip),
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,
@@ -147,7 +171,8 @@ def generate_launch_description():
                 on_exit=[load_ackermann_controller],
             )
         ),
-        gazebo,
+        gazebo_server,
+        gazebo_gui,
         ros_gz_bridge,
         rviz,
         node_robot_state_publisher,
