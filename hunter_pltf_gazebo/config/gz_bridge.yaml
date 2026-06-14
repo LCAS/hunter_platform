@@ -1,0 +1,105 @@
+# ---------------------------------------------------------------------------
+# ros_gz_bridge configuration for the Hunter platform simulation.
+#
+# MIGRATION NOTE:
+#   In Gazebo Classic each sensor had its own libgazebo_ros_* plugin that
+#   published ROS topics directly. In the new Gazebo (Harmonic) sensors publish
+#   on gz-transport only; ros_gz_bridge converts the gz messages to ROS 2.
+#   Every sensor we want in ROS 2 must be listed here.
+#
+#   Format reference (Harmonic): /TOPIC@ROS_MSG@GZ_MSG, expressed in YAML as
+#   ros_topic_name / gz_topic_name / ros_type_name / gz_type_name / direction.
+# ---------------------------------------------------------------------------
+
+# Simulation clock (GZ -> ROS) so use_sim_time works across the stack.
+- ros_topic_name: "clock"
+  gz_topic_name: "clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: "GZ_TO_ROS"
+
+# --- 3D LiDARs -------------------------------------------------------------
+# gpu_lidar publishes <topic>/points as a packed point cloud. This is the
+# point-cloud support requested for the new Gazebo.
+- ros_topic_name: "front_lidar/points"
+  gz_topic_name: "front_lidar/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: "GZ_TO_ROS"
+
+- ros_topic_name: "back_lidar/points"
+  gz_topic_name: "back_lidar/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: "GZ_TO_ROS"
+
+# Planar LaserScan rings from the same sensors (useful for 2D SLAM/costmaps).
+- ros_topic_name: "front_lidar/scan"
+  gz_topic_name: "front_lidar"
+  ros_type_name: "sensor_msgs/msg/LaserScan"
+  gz_type_name: "gz.msgs.LaserScan"
+  direction: "GZ_TO_ROS"
+
+- ros_topic_name: "back_lidar/scan"
+  gz_topic_name: "back_lidar"
+  ros_type_name: "sensor_msgs/msg/LaserScan"
+  gz_type_name: "gz.msgs.LaserScan"
+  direction: "GZ_TO_ROS"
+
+# --- IMUs ------------------------------------------------------------------
+- ros_topic_name: "imu/data"
+  gz_topic_name: "imu/data"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: "GZ_TO_ROS"
+
+- ros_topic_name: "gps_base/yaw"
+  gz_topic_name: "gps_base/yaw"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: "GZ_TO_ROS"
+
+# --- GPS / NavSat ----------------------------------------------------------
+# Exposes the new-Gazebo navsat sensor as a standard ROS 2 NavSatFix.
+- ros_topic_name: "gps_base/fix"
+  gz_topic_name: "gps_base/fix"
+  ros_type_name: "sensor_msgs/msg/NavSatFix"
+  gz_type_name: "gz.msgs.NavSat"
+  direction: "GZ_TO_ROS"
+
+# --- Depth / RGBD cameras --------------------------------------------------
+- ros_topic_name: "front_camera/depth/image"
+  gz_topic_name: "front_camera/depth/image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: "GZ_TO_ROS"
+
+- ros_topic_name: "front_camera/depth/points"
+  gz_topic_name: "front_camera/depth/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: "GZ_TO_ROS"
+
+- ros_topic_name: "front_camera/depth/camera_info"
+  gz_topic_name: "front_camera/depth/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: "GZ_TO_ROS"
+
+- ros_topic_name: "back_camera/depth/image"
+  gz_topic_name: "back_camera/depth/image"
+  ros_type_name: "sensor_msgs/msg/Image"
+  gz_type_name: "gz.msgs.Image"
+  direction: "GZ_TO_ROS"
+
+- ros_topic_name: "back_camera/depth/points"
+  gz_topic_name: "back_camera/depth/points"
+  ros_type_name: "sensor_msgs/msg/PointCloud2"
+  gz_type_name: "gz.msgs.PointCloudPacked"
+  direction: "GZ_TO_ROS"
+
+- ros_topic_name: "back_camera/depth/camera_info"
+  gz_topic_name: "back_camera/depth/camera_info"
+  ros_type_name: "sensor_msgs/msg/CameraInfo"
+  gz_type_name: "gz.msgs.CameraInfo"
+  direction: "GZ_TO_ROS"

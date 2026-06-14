@@ -86,10 +86,17 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}],
     )
 
-    clock_bridge = Node(
+    # ros_gz_bridge: bridges clock + all sensors (lidar point clouds, IMU,
+    # GPS/NavSat, cameras) from gz-transport to ROS 2. The full mapping lives
+    # in config/gz_bridge.yaml (see that file for per-topic documentation).
+    bridge_params = os.path.join(
+        hunter_gazebo_pkg_dir, 'config', 'gz_bridge.yaml'
+    )
+
+    ros_gz_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+        arguments=['--ros-args', '-p', f'config_file:={bridge_params}'],
         output='screen',
     )
 
@@ -141,7 +148,7 @@ def generate_launch_description():
             )
         ),
         gazebo,
-        clock_bridge,
+        ros_gz_bridge,
         rviz,
         node_robot_state_publisher,
         spawn_entity,

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!--
+    Generic 3D LiDAR macro for the new Gazebo (gz-sim / Harmonic) + ROS 2 Jazzy.
+
+    MIGRATION NOTES
+
+    This replaces the previous `mid360.xacro`, which was written for Gazebo
+    Classic and is NOT compatible with the new Gazebo:
+      * It used `<sensor type="ray">` with the Classic plugin
+        `libros2_livox.so` from the external `ros2_livox_simulation` package.
+      * That plugin and its `.csv` scan-pattern files do not exist for gz-sim,
+        so the sensor would silently fail to load.
+
+    Per the user's request, this macro is NOT tied to a Livox Mid-360. It models
+    a generic spinning 3D LiDAR (Velodyne/Ouster-class) using the native gz-sim
+    `gpu_lidar` sensor, which the `gz-sim-sensors-system` (added in the world
+    file) renders. A vertical scan band is included so the output is a true 3D
+    point cloud rather than a single planar ring.
+
+    OUTPUT
+
+    The `gpu_lidar` sensor publishes two gz topics:
+      * <topic>         : gz.msgs.LaserScan        (planar middle ring)
+      * <topic>/points  : gz.msgs.PointCloudPacked (full 3D cloud)
+    The point-cloud topic is bridged to sensor_msgs/PointCloud2 in gz_bridge.yaml.
+
+    The defaults below approximate a 16-beam, 360 deg 3D LiDAR. They can be
+    overridden per call (e.g. samples, beams, range) to model any 3D LiDAR.
+  -->
+  <xacro:macro name="lidar_3d"
+               params="name parent:='base_link' topic:='lidar'
+                       origin_xyz:='0 0 0' origin_rpy:='0 0 0'
+                       update_rate:=10
+                       h_samples:=900 v_samples:=16
+                       v_min_angle:=-0.261799 v_max_angle:=0.261799
+                       min_range:=0.3 max_range:=100.0
+                       is_sim:=true">
+
+    <link name="${name}">
+      <inertial>
+        <mass value="0.4"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.0004" ixy="0.0" ixz="0.0"
+                 iyy="0.0004" iyz="0.0" izz="0.0004"/>
+      </inertial>
+      <visual>
+        <geometry>
+          <cylinder radius="0.05" length="0.07"/>
+        </geometry>
+        <material name="lidar_black">
+          <color rgba="0.1 0.1 0.1 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="0.05" length="0.07"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${name}_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${name}"/>
+      <origin xyz="${origin_xyz}" rpy="${origin_rpy}"/>
+    </joint>
+
+    <xacro:if value="${is_sim}">
+      <gazebo reference="${name}">
+        <sensor name="${name}" type="gpu_lidar">
+          <topic>${topic}</topic>
+          <!-- gz_frame_id stamps the cloud/scan with the URDF link frame so TF
+               lines up in RViz without an extra static transform. -->
+          <gz_frame_id>${name}</gz_frame_id>
+          <update_rate>${update_rate}</update_rate>
+          <always_on>true</always_on>
+          <visualize>false</visualize>
+          <lidar>
+            <scan>
+              <horizontal>
+                <samples>${h_samples}</samples>
+                <resolution>1</resolution>
+                <min_angle>-3.141592653589793</min_angle>
+                <max_angle>3.141592653589793</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>${v_samples}</samples>
+                <resolution>1</resolution>
+                <min_angle>${v_min_angle}</min_angle>
+                <max_angle>${v_max_angle}</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>${min_range}</min>
+              <max>${max_range}</max>
+              <resolution>0.01</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>0.01</stddev>
+            </noise>
+          </lidar>
+        </sensor>
+      </gazebo>
+    </xacro:if>
+  </xacro:macro>
+</robot>

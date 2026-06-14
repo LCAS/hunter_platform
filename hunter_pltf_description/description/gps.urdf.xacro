@@ -15,9 +15,20 @@
     
     <!-- Add Gazebo sensor only when in simulation -->
     <xacro:if value="${is_sim}">
+      <!--
+        MIGRATION (Gazebo Classic -> new Gazebo / Harmonic):
+        The sensor type is now "navsat" (was "gps"). In the new Gazebo the GPS
+        sensor type was renamed to NavSat, and it is driven by the
+        `gz-sim-navsat-system` world plugin (added in empty_world.world).
+        The sensor publishes a gz.msgs.NavSat message on the gz topic below,
+        which gz_bridge.yaml bridges to sensor_msgs/NavSatFix for ROS 2.
+        The world's <spherical_coordinates> provides the datum used to convert
+        the local ENU pose into latitude/longitude/altitude.
+      -->
       <gazebo reference="${name}_link">
-        <sensor name="${name}_gps" type="gps">
-          <topic>/${name}/fix</topic>
+        <sensor name="${name}_navsat" type="navsat">
+          <topic>${name}/fix</topic>
+          <gz_frame_id>${name}_link</gz_frame_id>
           <always_on>true</always_on>
           <update_rate>10</update_rate>
         </sensor>

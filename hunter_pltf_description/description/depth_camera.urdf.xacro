@@ -26,10 +26,25 @@
 
 
 <xacro:if value="${is_sim}">
+    <!--
+      MIGRATION (Gazebo Classic -> new Gazebo / Harmonic):
+      Sensor type changed from "depth" to "rgbd_camera". In the new Gazebo an
+      rgbd_camera natively renders both the RGB image and a registered 3D point
+      cloud, rendered by the `gz-sim-sensors-system` world plugin. With <topic>
+      set to "/<name>/depth", it publishes:
+        /<name>/depth/image        gz.msgs.Image            (RGB image)
+        /<name>/depth/depth_image  gz.msgs.Image            (depth image)
+        /<name>/depth/points       gz.msgs.PointCloudPacked (3D cloud)
+        /<name>/depth/camera_info  gz.msgs.CameraInfo
+      These are bridged to ROS 2 sensor_msgs in gz_bridge.yaml.
+      `gz_frame_id` stamps the data with the optical frame for correct TF.
+    -->
     <gazebo reference="${name}_link">
-        <sensor name="${name}_camera" type="depth">
+        <sensor name="${name}_camera" type="rgbd_camera">
             <topic>/${name}/depth</topic>
+            <gz_frame_id>${name}_link_optical</gz_frame_id>
             <pose> 0 0 0 0 0 0 </pose>
+            <always_on>true</always_on>
             <visualize>true</visualize>
             <update_rate>10</update_rate>
             <camera>
