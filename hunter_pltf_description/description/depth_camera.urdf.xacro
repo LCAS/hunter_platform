@@ -37,17 +37,18 @@
         /<name>/depth/points       gz.msgs.PointCloudPacked (3D cloud)
         /<name>/depth/camera_info  gz.msgs.CameraInfo
       These are bridged to ROS 2 sensor_msgs in gz_bridge.yaml.
-      `gz_frame_id` stamps the data with the optical frame for correct TF.
+      `optical_frame_id` stamps camera data with the optical frame using a
+      schema-valid SDF camera element.
     -->
     <gazebo reference="${name}_link">
         <sensor name="${name}_camera" type="rgbd_camera">
             <topic>/${name}/depth</topic>
-            <gz_frame_id>${name}_link_optical</gz_frame_id>
             <pose> 0 0 0 0 0 0 </pose>
             <always_on>true</always_on>
             <visualize>true</visualize>
             <update_rate>10</update_rate>
             <camera>
+                <optical_frame_id>${name}_link_optical</optical_frame_id>
                 <horizontal_fov>2.089</horizontal_fov>
                 <image>
                     <format>B8G8R8</format>

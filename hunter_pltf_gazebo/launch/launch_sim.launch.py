@@ -31,9 +31,9 @@ def generate_launch_description():
     roll = LaunchConfiguration('roll', default='0.0')
     pitch = LaunchConfiguration('pitch', default='0.0')
     yaw = LaunchConfiguration('yaw', default='1.45')
-    use_rviz = LaunchConfiguration('use_rviz', default='false')
+    use_rviz = LaunchConfiguration('use_rviz', default='true')
     use_gazebo = LaunchConfiguration('use_gazebo', default='true')
-    with_gui = LaunchConfiguration('with_gui', default='false')
+    with_gui = LaunchConfiguration('with_gui', default='true')
     gz_ip = LaunchConfiguration('gz_ip', default='127.0.0.1')
 
     robot_description_content = Command(
@@ -60,6 +60,42 @@ def generate_launch_description():
         executable='robot_state_publisher',
         output='screen',
         parameters=[robot_description, {'use_sim_time': use_sim_time}]
+    )
+
+    # Gazebo stamps gpu_lidar messages with scoped SDF frame names. Publish
+    # matching TF frames so RViz/Nav2 can transform the bridged scans/clouds.
+    front_lidar_scoped_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=[
+            '--x', '0.56',
+            '--y', '0.235',
+            '--z', '0.46',
+            '--roll', '0',
+            '--pitch', '0',
+            '--yaw', '0',
+            '--frame-id', 'base_link',
+            '--child-frame-id', 'hunter_gazebo/base_link/front_lidar_link',
+        ],
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}],
+    )
+
+    back_lidar_scoped_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=[
+            '--x', '-0.56',
+            '--y', '-0.235',
+            '--z', '0.46',
+            '--roll', '0',
+            '--pitch', '0',
+            '--yaw', '3.14159',
+            '--frame-id', 'base_link',
+            '--child-frame-id', 'hunter_gazebo/base_link/back_lidar_link',
+        ],
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}],
     )
 
     # Start the Gazebo Sim server explicitly. In headless/container environments
@@ -150,9 +186,9 @@ def generate_launch_description():
         DeclareLaunchArgument('pitch', default_value='0.0', description='Start pitch angle'),
         DeclareLaunchArgument('yaw', default_value='1.45', description='Start yaw angle'),
         DeclareLaunchArgument('world_path', default_value=world_path, description='Gazebo world file path'),
-        DeclareLaunchArgument('use_rviz', default_value='false', description='Whether to start RViZ'),
+        DeclareLaunchArgument('use_rviz', default_value='true', description='Whether to start RViZ'),
         DeclareLaunchArgument('use_gazebo', default_value='true', description='Whether to start Gazebo'),
-        DeclareLaunchArgument('with_gui', default_value='false', description='Whether to start the Gazebo GUI client'),
+        DeclareLaunchArgument('with_gui', default_value='true', description='Whether to start the Gazebo GUI client'),
         DeclareLaunchArgument(
             'gz_ip',
             default_value='127.0.0.1',
@@ -174,6 +210,8 @@ def generate_launch_description():
         gazebo_server,
         gazebo_gui,
         ros_gz_bridge,
+        front_lidar_scoped_tf,
+        back_lidar_scoped_tf,
         rviz,
         node_robot_state_publisher,
         spawn_entity,

@@ -70,9 +70,6 @@
       <gazebo reference="${name}">
         <sensor name="${name}" type="gpu_lidar">
           <topic>${topic}</topic>
-          <!-- gz_frame_id stamps the cloud/scan with the URDF link frame so TF
-               lines up in RViz without an extra static transform. -->
-          <gz_frame_id>${name}</gz_frame_id>
           <update_rate>${update_rate}</update_rate>
           <always_on>true</always_on>
           <visualize>false</visualize>
