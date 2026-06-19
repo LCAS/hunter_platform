@@ -1,8 +1,15 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:macro name="hunter_imu" params="name topic x:=0.0 y:=0.0 z:=0.0 roll:=0.0 pitch:=0.0 yaw:=0.0 is_sim:=true">
+  <xacro:macro name="hunter_imu"
+               params="name topic parent:=base_link
+                       x:=0.0 y:=0.0 z:=0.0 roll:=0.0 pitch:=0.0 yaw:=0.0
+                       update_rate:=50
+                       angular_velocity_stddev:=0.01
+                       linear_acceleration_stddev:=0.01
+                       bias_stddev:=0.0001
+                       is_sim:=true">
     <joint name="${name}_joint" type="fixed">
-      <parent link="base_link"/>
+      <parent link="${parent}"/>
       <child link="${name}_link"/>
       <origin xyz="${x} ${y} ${z}" rpy="${roll} ${pitch} ${yaw}"/>
     </joint>
@@ -14,31 +21,31 @@
         <sensor name="${name}_imu" type="imu">
           <topic>${topic}</topic>
           <always_on>true</always_on>
-          <update_rate>50</update_rate>
+          <update_rate>${update_rate}</update_rate>
           <imu>
             <angular_velocity>
               <x>
                 <noise type="gaussian">
                   <mean>0.0</mean>
-                  <stddev>0.01</stddev>
+                  <stddev>${angular_velocity_stddev}</stddev>
                   <bias_mean>0.0</bias_mean>
-                  <bias_stddev>0.0001</bias_stddev>
+                  <bias_stddev>${bias_stddev}</bias_stddev>
                 </noise>
               </x>
               <y>
                 <noise type="gaussian">
                   <mean>0.0</mean>
-                  <stddev>0.01</stddev>
+                  <stddev>${angular_velocity_stddev}</stddev>
                   <bias_mean>0.0</bias_mean>
-                  <bias_stddev>0.0001</bias_stddev>
+                  <bias_stddev>${bias_stddev}</bias_stddev>
                 </noise>
               </y>
               <z>
                 <noise type="gaussian">
                   <mean>0.0</mean>
-                  <stddev>0.01</stddev>
+                  <stddev>${angular_velocity_stddev}</stddev>
                   <bias_mean>0.0</bias_mean>
-                  <bias_stddev>0.0001</bias_stddev>
+                  <bias_stddev>${bias_stddev}</bias_stddev>
                 </noise>
               </z>
             </angular_velocity>
@@ -46,25 +53,25 @@
               <x>
                 <noise type="gaussian">
                   <mean>0.0</mean>
-                  <stddev>0.01</stddev>
+                  <stddev>${linear_acceleration_stddev}</stddev>
                   <bias_mean>0.0</bias_mean>
-                  <bias_stddev>0.0001</bias_stddev>
+                  <bias_stddev>${bias_stddev}</bias_stddev>
                 </noise>
               </x>
               <y>
                 <noise type="gaussian">
                   <mean>0.0</mean>
-                  <stddev>0.01</stddev>
+                  <stddev>${linear_acceleration_stddev}</stddev>
                   <bias_mean>0.0</bias_mean>
-                  <bias_stddev>0.0001</bias_stddev>
+                  <bias_stddev>${bias_stddev}</bias_stddev>
                 </noise>
               </y>
               <z>
                 <noise type="gaussian">
                   <mean>0.0</mean>
-                  <stddev>0.01</stddev>
+                  <stddev>${linear_acceleration_stddev}</stddev>
                   <bias_mean>0.0</bias_mean>
-                  <bias_stddev>0.0001</bias_stddev>
+                  <bias_stddev>${bias_stddev}</bias_stddev>
                 </noise>
               </z>
             </linear_acceleration>

@@ -20,6 +20,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 def generate_launch_description():
     # Package directories
     hunter_gazebo_pkg_dir = get_package_share_directory('hunter_pltf_gazebo')
+    livox_mid360_pkg_dir = get_package_share_directory('livox_mid360_gz')
 
     # Launch configurations
     world_path = LaunchConfiguration(
@@ -35,14 +36,13 @@ def generate_launch_description():
     use_gazebo = LaunchConfiguration('use_gazebo', default='true')
     with_gui = LaunchConfiguration('with_gui', default='true')
     gz_ip = LaunchConfiguration('gz_ip', default='127.0.0.1')
+    robot_xacro_file = LaunchConfiguration('robot_xacro_file')
 
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
-            PathJoinSubstitution(
-                [FindPackageShare("hunter_pltf_description"), "description" ,"hunter_pltf.urdf.xacro"]
-            ),
+            robot_xacro_file,
             " ",
             "is_sim:=",
              use_sim_time,
@@ -93,6 +93,57 @@ def generate_launch_description():
             '--yaw', '3.14159',
             '--frame-id', 'base_link',
             '--child-frame-id', 'hunter_gazebo/base_link/back_lidar_link',
+        ],
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}],
+    )
+
+    front_lidar_imu_scoped_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=[
+            '--x', '0.56',
+            '--y', '0.235',
+            '--z', '0.413',
+            '--roll', '0',
+            '--pitch', '0',
+            '--yaw', '0',
+            '--frame-id', 'base_link',
+            '--child-frame-id', 'hunter_gazebo/base_link/front_lidar_imu_imu',
+        ],
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}],
+    )
+
+    gps_yaw_imu_scoped_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=[
+            '--x', '-0.25',
+            '--y', '0.0',
+            '--z', '0.47',
+            '--roll', '0',
+            '--pitch', '0',
+            '--yaw', '0',
+            '--frame-id', 'base_link',
+            '--child-frame-id', 'hunter_gazebo/base_link/imu_imu',
+        ],
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}],
+    )
+
+    gps_navsat_scoped_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=[
+            '--x', '-0.25',
+            '--y', '0.0',
+            '--z', '0.47',
+            '--roll', '0',
+            '--pitch', '0',
+            '--yaw', '0',
+            '--frame-id', 'base_link',
+            '--child-frame-id', 'hunter_gazebo/base_link/gps_base_navsat',
         ],
         output='screen',
         parameters=[{'use_sim_time': use_sim_time}],
@@ -186,6 +237,13 @@ def generate_launch_description():
         DeclareLaunchArgument('pitch', default_value='0.0', description='Start pitch angle'),
         DeclareLaunchArgument('yaw', default_value='1.45', description='Start yaw angle'),
         DeclareLaunchArgument('world_path', default_value=world_path, description='Gazebo world file path'),
+        DeclareLaunchArgument(
+            'robot_xacro_file',
+            default_value=PathJoinSubstitution(
+                [FindPackageShare("hunter_pltf_description"), "description", "hunter_pltf.urdf.xacro"]
+            ),
+            description='Path to the robot URDF xacro file',
+        ),
         DeclareLaunchArgument('use_rviz', default_value='true', description='Whether to start RViZ'),
         DeclareLaunchArgument('use_gazebo', default_value='true', description='Whether to start Gazebo'),
         DeclareLaunchArgument('with_gui', default_value='true', description='Whether to start the Gazebo GUI client'),
@@ -195,6 +253,26 @@ def generate_launch_description():
             description='Gazebo Transport IP address used for local discovery',
         ),
         SetEnvironmentVariable('GZ_IP', gz_ip),
+        SetEnvironmentVariable(
+            'GZ_SIM_RESOURCE_PATH',
+            [
+                os.path.join(livox_mid360_pkg_dir, '..'),
+                ':',
+                os.path.join(livox_mid360_pkg_dir, 'models'),
+                ':',
+                livox_mid360_pkg_dir,
+                ':',
+                os.environ.get('GZ_SIM_RESOURCE_PATH', ''),
+            ],
+        ),
+        SetEnvironmentVariable(
+            'GZ_SIM_SYSTEM_PLUGIN_PATH',
+            [
+                os.path.join(livox_mid360_pkg_dir, '..', '..', 'lib'),
+                ':',
+                os.environ.get('GZ_SIM_SYSTEM_PLUGIN_PATH', ''),
+            ],
+        ),
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,
@@ -212,6 +290,9 @@ def generate_launch_description():
         ros_gz_bridge,
         front_lidar_scoped_tf,
         back_lidar_scoped_tf,
+        front_lidar_imu_scoped_tf,
+        gps_yaw_imu_scoped_tf,
+        gps_navsat_scoped_tf,
         rviz,
         node_robot_state_publisher,
         spawn_entity,

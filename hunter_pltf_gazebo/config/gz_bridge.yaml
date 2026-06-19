@@ -19,8 +19,9 @@
   direction: "GZ_TO_ROS"
 
 # --- 3D LiDARs -------------------------------------------------------------
-# gpu_lidar publishes <topic>/points as a packed point cloud. This is the
-# point-cloud support requested for the new Gazebo.
+# The Mid-360 sampler plugin republishes the exact Livox scan pattern on these
+# gz topics. The raw GPU backend clouds stay on */raw_gpu/points and are not
+# bridged to ROS.
 - ros_topic_name: "front_lidar/points"
   gz_topic_name: "front_lidar/points"
   ros_type_name: "sensor_msgs/msg/PointCloud2"
@@ -33,22 +34,15 @@
   gz_type_name: "gz.msgs.PointCloudPacked"
   direction: "GZ_TO_ROS"
 
-# Planar LaserScan rings from the same sensors (useful for 2D SLAM/costmaps).
-- ros_topic_name: "front_lidar/scan"
-  gz_topic_name: "front_lidar"
-  ros_type_name: "sensor_msgs/msg/LaserScan"
-  gz_type_name: "gz.msgs.LaserScan"
-  direction: "GZ_TO_ROS"
-
-- ros_topic_name: "back_lidar/scan"
-  gz_topic_name: "back_lidar"
-  ros_type_name: "sensor_msgs/msg/LaserScan"
-  gz_type_name: "gz.msgs.LaserScan"
-  direction: "GZ_TO_ROS"
-
 # --- IMUs ------------------------------------------------------------------
 - ros_topic_name: "imu/data"
   gz_topic_name: "imu/data"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: "GZ_TO_ROS"
+
+- ros_topic_name: "front_lidar/imu"
+  gz_topic_name: "front_lidar/imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   direction: "GZ_TO_ROS"

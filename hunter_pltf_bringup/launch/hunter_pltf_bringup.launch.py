@@ -1,124 +1,146 @@
-# Copyright 2020 ros2_control Development Team
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
- 
+import os
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from launch_ros.substitutions import FindPackageShare
-import os
- 
+
+
 def generate_launch_description():
-    
     # Initialize Arguments
-    gui = LaunchConfiguration("gui", default="true")
-    kp_v = LaunchConfiguration('kp_v', default='40.0')
-    kd_v = LaunchConfiguration('kd_v', default='0.1') 
-    kp_w = LaunchConfiguration('kp_w', default='35.0')
-    kd_w = LaunchConfiguration("kd_w", default="0.1")
-    use_mock_hardware = LaunchConfiguration("use_mock_hardware", default="true")
-    is_sim = LaunchConfiguration('is_sim' , default='false')
-    enable_pd_regulator = LaunchConfiguration('enable_pd_regulator', default='False')
-    use_sim_time = LaunchConfiguration('use_sim_time', default='False')
-  
-    gui_declare = DeclareLaunchArgument(
-            "gui", default_value=gui, description="Start RViz2 automatically with this launch file.")
-   
-    # IH: THIS PARAM IS NOT USED
-    use_mock_hardware_declare = DeclareLaunchArgument(
-            "use_mock_hardware", default_value=use_mock_hardware,description="Start robot with mock hardware mirroring command to its states.")
-    
-    use_sim_time_declare = DeclareLaunchArgument('use_sim_time', default_value=use_sim_time,
-                                                                    description='Use simulation clock if true')
-    kp_v_val_declare = DeclareLaunchArgument('kp_v', default_value=kp_v, description='Proportional gain for linear velocity')
-    kd_v_val_declare = DeclareLaunchArgument('kd_v', default_value=kd_v, description='Derivative gain for linear velocity')
-    kp_w_val_declare = DeclareLaunchArgument('kp_w', default_value=kp_w, description='Proportional gain for angular velocity')
-    kd_w_val_declare = DeclareLaunchArgument('kd_w', default_value=kd_w, description='Derivative gain for angular velocity')
-    enable_pd_regulator_declare = DeclareLaunchArgument('enable_pd_regulator', default_value=enable_pd_regulator
-        , description='Use PD regulator estimate residual control to the robot')
-    
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    robot_xacro_file = LaunchConfiguration('robot_xacro_file')
+    is_sim = LaunchConfiguration('is_sim')
+    prefix = LaunchConfiguration('prefix')
+    port_name = LaunchConfiguration('port_name')
+    odom_frame = LaunchConfiguration('odom_frame')
+    base_frame = LaunchConfiguration('base_frame')
+    odom_topic_name = LaunchConfiguration('odom_topic_name')
+    cmd_vel_topic = LaunchConfiguration('cmd_vel_topic')
+    robot_model = LaunchConfiguration('robot_model')
+    simulated_robot = LaunchConfiguration('simulated_robot')
+    control_rate = LaunchConfiguration('control_rate')
+
+    declared_arguments = [
+        DeclareLaunchArgument(
+            'use_sim_time',
+            default_value='false',
+            description='Use simulation clock if true',
+        ),
+        DeclareLaunchArgument(
+            'robot_xacro_file',
+            default_value=PathJoinSubstitution(
+                [
+                    FindPackageShare('hunter_pltf_description'),
+                    'description',
+                    'hunter_pltf.urdf.xacro',
+                ]
+            ),
+            description='Path to the robot URDF xacro file',
+        ),
+        DeclareLaunchArgument(
+            'is_sim',
+            default_value='false',
+            description='Generate robot description for simulation if true',
+        ),
+        DeclareLaunchArgument(
+            'prefix',
+            default_value='',
+            description='TF/link prefix passed to the robot xacro',
+        ),
+        DeclareLaunchArgument(
+            'port_name',
+            default_value='can0',
+            description='CAN interface used by hunter_base, e.g. can0',
+        ),
+        DeclareLaunchArgument(
+            'odom_frame',
+            default_value='odom',
+            description='Odometry frame id published by hunter_base',
+        ),
+        DeclareLaunchArgument(
+            'base_frame',
+            default_value='base_link',
+            description='Robot base frame id published by hunter_base',
+        ),
+        DeclareLaunchArgument(
+            'odom_topic_name',
+            default_value='/ackermann_controller/odometry',
+            description='Odometry topic name published by hunter_base',
+        ),
+        DeclareLaunchArgument(
+            'cmd_vel_topic',
+            default_value='/cmd_vel',
+            description='Command velocity topic consumed by hunter_base',
+        ),
+        DeclareLaunchArgument(
+            'robot_model',
+            default_value='hunter2',
+            description='Hunter base model parameter, e.g. hunter2 or hunter_se',
+        ),
+        DeclareLaunchArgument(
+            'simulated_robot',
+            default_value='false',
+            description='Run hunter_base in simulation mode',
+        ),
+        DeclareLaunchArgument(
+            'control_rate',
+            default_value='50',
+            description='hunter_base simulation control loop rate',
+        ),
+    ]
+
     # Get URDF via xacro
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
-            PathJoinSubstitution(
-                [FindPackageShare("hunter_pltf_description"), "description" ,"hunter_pltf.urdf.xacro"]
-            ),
+            robot_xacro_file,
             " ",
             "is_sim:=",
-             is_sim,
-             " ",
-            "prefix:=''",
+            is_sim,
             " ",
-        ]
-    )
-    
-    robot_description = {"robot_description": robot_description_content}
- 
-    robot_controllers = PathJoinSubstitution(
-        [
-            FindPackageShare("hunter_base"),
-            "config",
-            "hardware_controllers.yaml",
+            "prefix:=",
+            prefix,
+            " ",
         ]
     )
 
+    robot_description = {
+        "robot_description": ParameterValue(robot_description_content, value_type=str)
+    }
+
     base_launch = os.path.join(get_package_share_directory("hunter_base"), "launch", "hunter_base.launch.py")
- 
-    control_node = Node(
-        package="controller_manager",
-        executable="ros2_control_node",
-        parameters=[robot_description, robot_controllers],
-        output="both",
-    )
-    
+     
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
-        parameters=[robot_description],
+        parameters=[robot_description, {'use_sim_time': use_sim_time}],
     )
     
     hunter_base_node = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(base_launch),
-            launch_arguments={
-                'use_sim_time': use_sim_time,
-                'kp_v': kp_v,
-                'kd_v': kd_v,
-                'kp_w': kp_w,
-                'kd_w': kd_w,
-                'enable_pd_regulator': enable_pd_regulator
-                }.items(),
+        PythonLaunchDescriptionSource(base_launch),
+        launch_arguments={
+            'use_sim_time': use_sim_time,
+            'port_name': port_name,
+            'odom_frame': odom_frame,
+            'base_frame': base_frame,
+            'odom_topic_name': odom_topic_name,
+            'cmd_vel_topic': cmd_vel_topic,
+            'robot_model': robot_model,
+            'simulated_robot': simulated_robot,
+            'control_rate': control_rate,
+        }.items(),
     )
-    
-    # Create the launch description and populate
-    ld = LaunchDescription()
 
-    # Declare the launch options
-    ld.add_action(gui_declare)
-    ld.add_action(use_mock_hardware_declare)
-    ld.add_action(kp_v_val_declare)
-    ld.add_action(kd_v_val_declare)
-    ld.add_action(kp_w_val_declare)
-    ld.add_action(kd_w_val_declare)
-    ld.add_action(enable_pd_regulator_declare)
-    ld.add_action(use_sim_time_declare)
-    
-    ld.add_action(robot_state_pub_node)
-    ld.add_action(hunter_base_node)
-   
-    return ld
+    return LaunchDescription(
+        declared_arguments
+        + [
+            robot_state_pub_node,
+            hunter_base_node,
+        ]
+    )
