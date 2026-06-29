@@ -204,6 +204,26 @@ def generate_launch_description():
         output='screen',
     )
 
+    gazebo_pose_yaw_imu = Node(
+        package='hunter_pltf_gazebo',
+        executable='gazebo_pose_yaw_imu.py',
+        name='gazebo_pose_yaw_imu',
+        output='screen',
+        parameters=[
+            {
+                'use_sim_time': use_sim_time,
+                'input_topic': '/gazebo/dynamic_pose/info',
+                'output_topic': '/gps_base/yaw',
+                'source_child_frame_id': 'hunter_gazebo',
+                'frame_id': 'hunter_gazebo/base_link/imu_imu',
+                'gps_odom_input_topic': '/gps_base/odometry_raw',
+                'gps_odom_output_topic': '/gps_base/odometry',
+                'gps_odom_frame_id': 'map',
+                'gps_odom_child_frame_id': 'base_link',
+            },
+        ],
+    )
+
     load_joint_state_broadcaster = ExecuteProcess(
         cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
              'joint_state_broadcaster'],
@@ -288,6 +308,7 @@ def generate_launch_description():
         gazebo_server,
         gazebo_gui,
         ros_gz_bridge,
+        gazebo_pose_yaw_imu,
         front_lidar_scoped_tf,
         back_lidar_scoped_tf,
         front_lidar_imu_scoped_tf,

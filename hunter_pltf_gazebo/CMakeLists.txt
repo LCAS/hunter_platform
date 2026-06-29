@@ -28,4 +28,9 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(
+  PROGRAMS scripts/gazebo_pose_yaw_imu.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()

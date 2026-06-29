@@ -15,6 +15,10 @@
   <exec_depend>ros_gz_bridge</exec_depend>
   <exec_depend>gz_ros2_control</exec_depend>
   <exec_depend>controller_manager</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>tf2_msgs</exec_depend>
   <exec_depend>hunter_pltf_description</exec_depend>
   <exec_depend>livox_mid360_gz</exec_depend>
   <export>

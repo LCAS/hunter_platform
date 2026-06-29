@@ -47,10 +47,22 @@
   gz_type_name: "gz.msgs.IMU"
   direction: "GZ_TO_ROS"
 
-- ros_topic_name: "gps_base/yaw"
+# Gazebo's IMU orientation is relative to the spawned model pose in this setup,
+# so keep it available for debugging and publish the navsat yaw from the model
+# pose instead.
+- ros_topic_name: "gps_base/yaw_raw"
   gz_topic_name: "gps_base/yaw"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
+  direction: "GZ_TO_ROS"
+
+# Absolute Gazebo model pose. launch_sim.launch.py derives /gps_base/yaw from
+# the hunter_gazebo transform so GPS/navsat localization starts with the same
+# heading as the spawned model.
+- ros_topic_name: "gazebo/dynamic_pose/info"
+  gz_topic_name: "/world/default/dynamic_pose/info"
+  ros_type_name: "tf2_msgs/msg/TFMessage"
+  gz_type_name: "gz.msgs.Pose_V"
   direction: "GZ_TO_ROS"
 
 # --- GPS / NavSat ----------------------------------------------------------
