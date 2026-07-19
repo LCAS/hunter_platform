@@ -15,7 +15,7 @@
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>hunter_base</exec_depend>
   <exec_depend>hunter_pltf_description</exec_depend>
-  <exec_depend>ros2_livox_simulation</exec_depend>
+  <exec_depend>livox_mid360_gz</exec_depend>
   
   <export>
     <build_type>ament_cmake</build_type>
