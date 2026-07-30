@@ -2,15 +2,78 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro" name="hunter_pltf">
    <xacro:arg name="is_sim" default="true"/>
    <xacro:arg name="prefix" default="" />
+   
+   <!-- IMU sensor parameters -->
+   <xacro:arg name="imu_x" default="-0.25"/>
+   <xacro:arg name="imu_y" default="0.0"/>
+   <xacro:arg name="imu_z" default="0.47"/>
+   <xacro:arg name="imu_roll" default="0.0"/>
+   <xacro:arg name="imu_pitch" default="0.0"/>
+   <xacro:arg name="imu_yaw" default="0.0"/>
+   <xacro:arg name="imu_topic" default="/gps_base/yaw"/>
+   
+   <xacro:arg name="imu1_x" default="0.25"/>
+   <xacro:arg name="imu1_y" default="0.0"/>
+   <xacro:arg name="imu1_z" default="0.47"/>
+   <xacro:arg name="imu1_roll" default="0.0"/>
+   <xacro:arg name="imu1_pitch" default="0.0"/>
+   <xacro:arg name="imu1_yaw" default="0.0"/>
+   <xacro:arg name="imu1_topic" default="/imu/data"/>
+   
+   <!-- Camera parameters -->
+   <xacro:arg name="front_camera_x" default="0.55"/>
+   <xacro:arg name="front_camera_y" default="0.0"/>
+   <xacro:arg name="front_camera_z" default="0.72"/>
+   <xacro:arg name="front_camera_roll" default="0.0"/>
+   <xacro:arg name="front_camera_pitch" default="0.0"/>
+   <xacro:arg name="front_camera_yaw" default="0.0"/>
+   
+   <xacro:arg name="back_camera_x" default="-0.55"/>
+   <xacro:arg name="back_camera_y" default="0.0"/>
+   <xacro:arg name="back_camera_z" default="0.72"/>
+   <xacro:arg name="back_camera_roll" default="0.0"/>
+   <xacro:arg name="back_camera_pitch" default="0.0"/>
+   <xacro:arg name="back_camera_yaw" default="3.14159265359"/>
+   
+   <!-- GPS parameters -->
+   <xacro:arg name="gps_base_x" default="-0.25"/>
+   <xacro:arg name="gps_base_y" default="0.0"/>
+   <xacro:arg name="gps_base_z" default="0.47"/>
+   <xacro:arg name="gps_base_roll" default="0.0"/>
+   <xacro:arg name="gps_base_pitch" default="0.0"/>
+   <xacro:arg name="gps_base_yaw" default="0.0"/>
+   
+   <!-- LiDAR parameters -->
+   <xacro:arg name="front_lidar_x" default="0.56"/>
+   <xacro:arg name="front_lidar_y" default="0.235"/>
+   <xacro:arg name="front_lidar_z" default="0.46"/>
+   <xacro:arg name="front_lidar_roll_sim" default="0.0"/>
+   <xacro:arg name="front_lidar_pitch_sim" default="0.0"/>
+   <xacro:arg name="front_lidar_yaw_sim" default="0.0"/>
+   <xacro:arg name="front_lidar_roll_real" default="-0.0174533"/>
+   <xacro:arg name="front_lidar_pitch_real" default="0.0"/>
+   <xacro:arg name="front_lidar_yaw_real" default="0.00872665"/>
+   <xacro:arg name="front_lidar_topic" default="front_lidar/points"/>
+   
+   <xacro:arg name="back_lidar_x" default="-0.56"/>
+   <xacro:arg name="back_lidar_y" default="-0.235"/>
+   <xacro:arg name="back_lidar_z" default="0.46"/>
+   <xacro:arg name="back_lidar_roll_sim" default="0.0"/>
+   <xacro:arg name="back_lidar_pitch_sim" default="0.0"/>
+   <xacro:arg name="back_lidar_yaw_sim" default="3.14159265359"/>
+   <xacro:arg name="back_lidar_roll_real" default="0.0"/>
+   <xacro:arg name="back_lidar_pitch_real" default="0.0"/>
+   <xacro:arg name="back_lidar_yaw_real" default="3.13286335"/>
+   <xacro:arg name="back_lidar_topic" default="back_lidar/points"/>
    <xacro:if value="$(arg is_sim)">
       <xacro:include filename="$(find hunter_description)/description/robot.urdf.xacro"/>
-      <xacro:property name="front_lidar_rpy" value="0 0 0"/>
-      <xacro:property name="back_lidar_rpy" value="0 0 3.14159"/>
+      <xacro:property name="front_lidar_rpy" value="$(arg front_lidar_roll_sim) $(arg front_lidar_pitch_sim) $(arg front_lidar_yaw_sim)"/>
+      <xacro:property name="back_lidar_rpy" value="$(arg back_lidar_roll_sim) $(arg back_lidar_pitch_sim) $(arg back_lidar_yaw_sim)"/>
    </xacro:if>
    <xacro:unless value="$(arg is_sim)">
       <xacro:include filename="$(find hunter_description)/description/robot_core_real_hack.xacro"/>
-      <xacro:property name="front_lidar_rpy" value="-0.0174533 0 0.00872665"/>
-      <xacro:property name="back_lidar_rpy" value="0 0 3.13286335"/>
+      <xacro:property name="front_lidar_rpy" value="$(arg front_lidar_roll_real) $(arg front_lidar_pitch_real) $(arg front_lidar_yaw_real)"/>
+      <xacro:property name="back_lidar_rpy" value="$(arg back_lidar_roll_real) $(arg back_lidar_pitch_real) $(arg back_lidar_yaw_real)"/>
    </xacro:unless>
 
    <xacro:include filename="$(find hunter_pltf_description)/description/lidar.urdf.xacro"/>
@@ -19,21 +82,39 @@
    <xacro:include filename="$(find hunter_pltf_description)/description/gps.urdf.xacro"/>
    <xacro:include filename="$(find hunter_pltf_description)/description/depth_camera.urdf.xacro"/>
    
-   <xacro:hunter_imu name="$(arg prefix)imu" is_sim="$(arg is_sim)" x="-0.25" y="0.0" z="0.47" topic="/gps_base/yaw"/>
-   <xacro:hunter_imu name="$(arg prefix)imu1" is_sim="$(arg is_sim)" x="0.25" y="0.0" z="0.47" topic="/imu/data"/>
+   <xacro:hunter_imu name="$(arg prefix)imu" is_sim="$(arg is_sim)" 
+                     x="$(arg imu_x)" y="$(arg imu_y)" z="$(arg imu_z)" 
+                     roll="$(arg imu_roll)" pitch="$(arg imu_pitch)" yaw="$(arg imu_yaw)"
+                     topic="$(arg imu_topic)"/>
+   <xacro:hunter_imu name="$(arg prefix)imu1" is_sim="$(arg is_sim)" 
+                     x="$(arg imu1_x)" y="$(arg imu1_y)" z="$(arg imu1_z)"
+                     roll="$(arg imu1_roll)" pitch="$(arg imu1_pitch)" yaw="$(arg imu1_yaw)"
+                     topic="$(arg imu1_topic)"/>
    <!-- <xacro:hunter_lidar name="$(arg prefix)front_lidar" x="0.615" y="0.28" z="0.33" is_sim="$(arg is_sim)" /> -->
    <!-- <xacro:hunter_lidar name="$(arg prefix)back_lidar" x="-0.565" y="-0.28" z="0.33"  yaw="3.14" is_sim="$(arg is_sim)"/> -->
-   <xacro:hunter_depth_camera name="front_camera" x="0.55" y="-0.00" z="0.72" is_sim="$(arg is_sim)" />
-   <xacro:hunter_depth_camera name="back_camera" x="-0.55" y="-0.00" z="0.72" is_sim="$(arg is_sim)" yaw="3.14"/>
+   <xacro:hunter_depth_camera name="front_camera" 
+                              x="$(arg front_camera_x)" y="$(arg front_camera_y)" z="$(arg front_camera_z)"
+                              roll="$(arg front_camera_roll)" pitch="$(arg front_camera_pitch)" yaw="$(arg front_camera_yaw)"
+                              is_sim="$(arg is_sim)" />
+   <xacro:hunter_depth_camera name="back_camera" 
+                              x="$(arg back_camera_x)" y="$(arg back_camera_y)" z="$(arg back_camera_z)"
+                              roll="$(arg back_camera_roll)" pitch="$(arg back_camera_pitch)" yaw="$(arg back_camera_yaw)"
+                              is_sim="$(arg is_sim)"/>
    <!-- <xacro:hunter_depth_camera name="fish_front_camera" x="0.55" y="0.00" z="0.93" is_sim="$(arg is_sim)" /> -->
    <!-- <xacro:hunter_depth_camera name="fish_right_camera" x="0.495" y="0.08" z="0.93" is_sim="$(arg is_sim)"  yaw="1.57"/> -->
    <!-- <xacro:hunter_depth_camera name="fish_back_camera" x="0.179" y="0.00" z="1.28" is_sim="$(arg is_sim)" yaw="3.14" />-->
    <!-- <xacro:hunter_depth_camera name="fish_left_camera" x="0.495" y="-0.08" z="0.93" is_sim="$(arg is_sim)" yaw="-1.57" /> -->
-   <xacro:hunter_gps name="$(arg prefix)gps_base" is_sim="$(arg is_sim)" x="-0.25" y="0.0" z="0.47" yaw="0.0" />
+   <xacro:hunter_gps name="$(arg prefix)gps_base" is_sim="$(arg is_sim)" 
+                     x="$(arg gps_base_x)" y="$(arg gps_base_y)" z="$(arg gps_base_z)"
+                     roll="$(arg gps_base_roll)" pitch="$(arg gps_base_pitch)" yaw="$(arg gps_base_yaw)" />
    <!-- <xacro:hunter_gps name="$(arg prefix)back_antenna" is_sim="$(arg is_sim)" x="-0.5" y="-0.245" z="0.80"/> -->
    <!-- <xacro:hunter_gps name="$(arg prefix)front_antenna" is_sim="$(arg is_sim)" x="0.5" y="-0.245" z="0.80"/> -->
 
-   <xacro:mid360 name="$(arg prefix)front_lidar_link" topic="front_lidar/points" origin_xyz="0.56 0.235 0.46" origin_rpy="${front_lidar_rpy}" is_sim="$(arg is_sim)"/>
-   <xacro:mid360 name="$(arg prefix)back_lidar_link" topic="back_lidar/points" origin_xyz="-0.56 -0.235 0.46" origin_rpy="${back_lidar_rpy}" is_sim="$(arg is_sim)"/>
+   <xacro:mid360 name="$(arg prefix)front_lidar_link" topic="$(arg front_lidar_topic)" 
+                 origin_xyz="$(arg front_lidar_x) $(arg front_lidar_y) $(arg front_lidar_z)" 
+                 origin_rpy="${front_lidar_rpy}" is_sim="$(arg is_sim)"/>
+   <xacro:mid360 name="$(arg prefix)back_lidar_link" topic="$(arg back_lidar_topic)" 
+                 origin_xyz="$(arg back_lidar_x) $(arg back_lidar_y) $(arg back_lidar_z)" 
+                 origin_rpy="${back_lidar_rpy}" is_sim="$(arg is_sim)"/>
 
 </robot>

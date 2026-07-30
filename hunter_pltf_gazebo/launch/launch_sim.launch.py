@@ -1,10 +1,13 @@
 import os
+import sys
+from pathlib import Path
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
     ExecuteProcess,
     RegisterEventHandler,
+    OpaqueFunction,
 )
 from launch_ros.actions import Node
 from launch.conditions import IfCondition
@@ -32,35 +35,57 @@ def generate_launch_description():
     yaw = LaunchConfiguration('yaw', default='1.45')
     use_rviz = LaunchConfiguration('use_rviz', default='false')
     use_gazebo = LaunchConfiguration('use_gazebo', default='true')
+    robot_id = LaunchConfiguration('robot_id', default='default')
 
     # Gazebo parameters
     gazebo_params_file = os.path.join(hunter_gazebo_pkg_dir, 'config', 'gazebo_params.yaml')
 
-    robot_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name="xacro")]),
-            " ",
-            PathJoinSubstitution(
-                [FindPackageShare("hunter_pltf_description"), "description" ,"hunter_pltf.urdf.xacro"]
-            ),
-            " ",
-            "is_sim:=",
-             use_sim_time,
-             " ",
-            "prefix:=''",
-            " ",
-        ]
-    )
-    robot_description = {
-        "robot_description": ParameterValue(robot_description_content, value_type=str)
-    }
-    # Create a robot_state_publisher node
-    node_robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        output='screen',
-        parameters=[robot_description, {'use_sim_time': use_sim_time}]
-    )
+    def generate_robot_description(context, *args, **kwargs):
+        """Generate robot description with robot-specific configuration."""
+        use_sim_time_val = LaunchConfiguration('use_sim_time').perform(context)
+        robot_id_val = LaunchConfiguration('robot_id').perform(context)
+        
+        # Import config loader
+        config_dir = Path(get_package_share_directory('hunter_pltf_description')) / 'config' / 'robots'
+        sys.path.insert(0, str(config_dir))
+        from config_loader import load_robot_config, get_xacro_args, format_xacro_args
+        
+        # Load robot configuration
+        is_sim = use_sim_time_val.lower() == 'true'
+        config = load_robot_config(robot_id_val)
+        xacro_args = get_xacro_args(config, is_sim)
+        
+        # Build xacro command with all arguments
+        xacro_file = PathJoinSubstitution(
+            [FindPackageShare("hunter_pltf_description"), "description", "hunter_pltf.urdf.xacro"]
+        )
+        
+        # Format all arguments
+        args_str = f"is_sim:={use_sim_time_val} prefix:='' {format_xacro_args(xacro_args)}"
+        
+        robot_description_content = Command(
+            [
+                PathJoinSubstitution([FindExecutable(name="xacro")]),
+                " ",
+                xacro_file,
+                " ",
+                args_str,
+            ]
+        )
+        
+        robot_description = {
+            "robot_description": ParameterValue(robot_description_content, value_type=str)
+        }
+        
+        # Create a robot_state_publisher node
+        node_robot_state_publisher = Node(
+            package='robot_state_publisher',
+            executable='robot_state_publisher',
+            output='screen',
+            parameters=[robot_description, {'use_sim_time': use_sim_time}]
+        )
+        
+        return [node_robot_state_publisher]
 
     # Include the Gazebo launch file, provided by the gazebo_ros package
     gazebo = IncludeLaunchDescription(
@@ -125,6 +150,9 @@ def generate_launch_description():
         DeclareLaunchArgument('world_path', default_value=world_path, description='Gazebo world file path'),
         DeclareLaunchArgument('use_rviz', default_value='false', description='Whether to start RViZ'),
         DeclareLaunchArgument('use_gazebo', default_value='true', description='Whether to start Gazebo'),
+        DeclareLaunchArgument('robot_id', default_value='default', 
+                            description='Robot instance ID (e.g., hunter_01, hunter_02). Uses robot-specific \
+        configuration from config/robots/<robot_id>.yaml. Defaults to default.yaml.'),
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,
@@ -139,6 +167,6 @@ def generate_launch_description():
         ),
         gazebo,
         rviz,
-        node_robot_state_publisher,
+        OpaqueFunction(function=generate_robot_description),
         spawn_entity,
     ])

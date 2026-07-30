@@ -24,7 +24,7 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY launch meshes description 
+  DIRECTORY launch meshes description config
   DESTINATION share/${PROJECT_NAME}
 )
 
