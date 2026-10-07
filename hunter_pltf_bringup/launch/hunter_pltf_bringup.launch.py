@@ -33,6 +33,13 @@ def generate_launch_description():
     is_sim = LaunchConfiguration('is_sim' , default='false')
     enable_pd_regulator = LaunchConfiguration('enable_pd_regulator', default='False')
     use_sim_time = LaunchConfiguration('use_sim_time', default='False')
+    port_name = LaunchConfiguration('port_name', default='can0')
+    odom_frame = LaunchConfiguration('odom_frame', default='odom')
+    base_frame = LaunchConfiguration('base_frame', default='base_link')
+    odom_topic_name = LaunchConfiguration('odom_topic_name', default='odom')
+    cmd_vel_topic = LaunchConfiguration('cmd_vel_topic', default='/cmd_vel')
+    robot_model = LaunchConfiguration('robot_model', default='hunter2')
+    simulated_robot = LaunchConfiguration('simulated_robot', default='false')
   
     gui_declare = DeclareLaunchArgument(
             "gui", default_value=gui, description="Start RViz2 automatically with this launch file.")
@@ -49,6 +56,13 @@ def generate_launch_description():
     kd_w_val_declare = DeclareLaunchArgument('kd_w', default_value=kd_w, description='Derivative gain for angular velocity')
     enable_pd_regulator_declare = DeclareLaunchArgument('enable_pd_regulator', default_value=enable_pd_regulator
         , description='Use PD regulator estimate residual control to the robot')
+    port_name_declare = DeclareLaunchArgument('port_name', default_value=port_name, description='CAN bus name, e.g. can0')
+    odom_frame_declare = DeclareLaunchArgument('odom_frame', default_value=odom_frame, description='Odometry frame id')
+    base_frame_declare = DeclareLaunchArgument('base_frame', default_value=base_frame, description='Base link frame id')
+    odom_topic_name_declare = DeclareLaunchArgument('odom_topic_name', default_value=odom_topic_name, description='Odometry topic name')
+    cmd_vel_topic_declare = DeclareLaunchArgument('cmd_vel_topic', default_value=cmd_vel_topic, description='Command velocity topic')
+    robot_model_declare = DeclareLaunchArgument('robot_model', default_value=robot_model, description='Hunter base model')
+    simulated_robot_declare = DeclareLaunchArgument('simulated_robot', default_value=simulated_robot, description='Whether running with simulator')
     
     # Get URDF via xacro
     robot_description_content = Command(
@@ -101,7 +115,14 @@ def generate_launch_description():
                 'kd_v': kd_v,
                 'kp_w': kp_w,
                 'kd_w': kd_w,
-                'enable_pd_regulator': enable_pd_regulator
+                'enable_pd_regulator': enable_pd_regulator,
+                'port_name': port_name,
+                'odom_frame': odom_frame,
+                'base_frame': base_frame,
+                'odom_topic_name': odom_topic_name,
+                'cmd_vel_topic': cmd_vel_topic,
+                'robot_model': robot_model,
+                'simulated_robot': simulated_robot,
                 }.items(),
     )
     
@@ -117,6 +138,13 @@ def generate_launch_description():
     ld.add_action(kd_w_val_declare)
     ld.add_action(enable_pd_regulator_declare)
     ld.add_action(use_sim_time_declare)
+    ld.add_action(port_name_declare)
+    ld.add_action(odom_frame_declare)
+    ld.add_action(base_frame_declare)
+    ld.add_action(odom_topic_name_declare)
+    ld.add_action(cmd_vel_topic_declare)
+    ld.add_action(robot_model_declare)
+    ld.add_action(simulated_robot_declare)
     
     ld.add_action(robot_state_pub_node)
     ld.add_action(hunter_base_node)
