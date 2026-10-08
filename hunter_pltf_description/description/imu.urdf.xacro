@@ -1,10 +1,12 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:macro name="hunter_imu" params="name topic x:=0.0 y:=0.0 z:=0.0 roll:=0.0 pitch:=0.0 yaw:=0.0 is_sim:=true">
+  <xacro:macro name="hunter_imu" params="name topic parent:=base_link x:=0.0 y:=0.0 z:=0.0 roll:=0.0 pitch:=0.0 yaw:=0.0 rpy:='' is_sim:=true update_rate:=50 angular_velocity_stddev:=0.01 linear_acceleration_stddev:=0.01">
+    <xacro:property name="origin_rpy" value="${rpy if rpy else str(roll) + ' ' + str(pitch) + ' ' + str(yaw)}"/>
+
     <joint name="${name}_joint" type="fixed">
-      <parent link="base_link"/>
+      <parent link="${parent}"/>
       <child link="${name}_link"/>
-      <origin xyz="${x} ${y} ${z}" rpy="${roll} ${pitch} ${yaw}"/>
+      <origin xyz="${x} ${y} ${z}" rpy="${origin_rpy}"/>
     </joint>
 
     <link name="${name}_link"/>
@@ -20,12 +22,12 @@
             <frame_name>${name}_link</frame_name>
           </plugin>
           <always_on>true</always_on>
-          <update_rate>50</update_rate>
+          <update_rate>${update_rate}</update_rate>
           <imu>
             <angular_velocity>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.01</stddev>
+                <stddev>${angular_velocity_stddev}</stddev>
               </noise>
               <bias>
                 <mean>0.0</mean>
@@ -35,7 +37,7 @@
             <linear_acceleration>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>0.01</stddev>
+                <stddev>${linear_acceleration_stddev}</stddev>
               </noise>
               <bias>
                 <mean>0.0</mean>

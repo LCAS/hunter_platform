@@ -33,10 +33,13 @@
                params="name='' parent='base_link'
                        raw_topic:='mid360/raw_gpu'
                        topic:='mid360/points'
+                       points_topic:=''
                        diagnostics_topic:='mid360/diagnostics'
                        frame_id:=''
                        origin_xyz='0 0 0' origin_rpy='0 0 0'
                        is_sim:=true">
+              <xacro:property name="resolved_topic" value="${points_topic if points_topic else topic}"/>
+
     <link name="${name}">
       <xacro:box_inertia m="${mass}" w="${width}" d="${length}" h="${height}"/>
       <visual>
@@ -93,7 +96,7 @@
         <plugin filename="liblivox_mid360_gz_plugin.so"
                 name="livox_mid360_gz::LivoxMid360GpuLidar">
           <input_topic>${raw_topic}/points</input_topic>
-          <output_topic>${topic}</output_topic>
+          <output_topic>${resolved_topic}</output_topic>
           <diagnostics_topic>${diagnostics_topic}</diagnostics_topic>
           <frame_id>${frame_id}</frame_id>
           <frame_rate>10</frame_rate>
